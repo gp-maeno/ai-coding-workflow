@@ -1,0 +1,40 @@
+{
+  "_comment": "比較対象を定義する。Figma の各 Frame と、生成されたページ/コンポーネントを対応付ける。",
+  "_comment2": "nodeId は Figma URL の ?node-id= 部分から取得。形式は '123:456' または '123-456'。",
+  "_comment3": "viewports は PC/Tablet/SP の3種類を標準とする。",
+  "viewports": {
+    "pc": { "width": 1440, "height": 900 },
+    "tablet": { "width": 768, "height": 1024 },
+    "sp": { "width": 375, "height": 812 }
+  },
+  "passThreshold": 0.95,
+  "maxIterations": 5,
+  "targets": [
+    {
+      "id": "top-hero",
+      "label": "トップページ ヒーローセクション",
+      "figmaNodeId": "1:23",
+      "renderUrl": "http://localhost:3000/index.html#hero",
+      "viewports": ["pc", "sp"],
+      "threshold": 0.97,
+      "_note": "重要領域なので閾値高め"
+    },
+    {
+      "id": "top-feature",
+      "label": "トップページ 特長セクション",
+      "figmaNodeId": "1:45",
+      "renderUrl": "http://localhost:3000/index.html#feature",
+      "viewports": ["pc", "sp"],
+      "threshold": 0.95
+    },
+    {
+      "id": "top-cta",
+      "label": "トップページ CTA",
+      "figmaNodeId": "1:78",
+      "renderUrl": "http://localhost:3000/index.html#cta",
+      "viewports": ["pc", "sp"],
+      "threshold": 0.97,
+      "_note": "CV直結なので厳しめ"
+    }
+  ]
+}

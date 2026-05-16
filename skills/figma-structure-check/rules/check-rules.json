@@ -1,0 +1,106 @@
+{
+  "_comment": "Figma構造チェックのルール定義。社内事情に応じてカスタマイズしてください。",
+  "rules": {
+    "auto-layout": {
+      "enabled": true,
+      "severity": "error",
+      "description": "すべての FRAME は Auto Layout を使用すべき",
+      "appliesTo": ["FRAME"],
+      "exceptions": {
+        "topLevelPage": true,
+        "_note": "ページ直下のCanvasレベルFrameは除外"
+      },
+      "fixGuidance": "対象のFrameを選択し、右側パネルの 'Auto layout' で Shift+A を押して有効化してください。"
+    },
+    "variables-color": {
+      "enabled": true,
+      "severity": "error",
+      "description": "塗り色は Variables にバインドされているべき（直値禁止）",
+      "appliesTo": ["TEXT", "RECTANGLE", "ELLIPSE", "FRAME", "INSTANCE"],
+      "fixGuidance": "色を選び、カラーピッカーで Variable を選択。未作成なら 'Local variables' で先にトークンを定義してください。",
+      "whitelist": {
+        "_note": "完全白・完全黒は許容（必要に応じて編集）",
+        "colors": ["#FFFFFF", "#000000"]
+      }
+    },
+    "variables-typography": {
+      "enabled": true,
+      "severity": "error",
+      "description": "テキストのフォントサイズ・フォントファミリー・ウェイトは Variables / Styles にバインドされているべき",
+      "appliesTo": ["TEXT"],
+      "fixGuidance": "Text Style を作成し、対象テキストに適用してください。"
+    },
+    "variables-spacing": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "Auto Layout の padding/gap は Variables にバインドされているべき",
+      "appliesTo": ["FRAME", "INSTANCE"],
+      "fixGuidance": "padding/gap の数値を Number Variable にバインドしてください。"
+    },
+    "components": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "3回以上同一構造で繰り返されている要素は Component 化されているべき",
+      "minRepetitions": 3,
+      "fixGuidance": "繰り返し要素を選び、Ctrl/Cmd+Alt+K で Component 化してください。"
+    },
+    "naming": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "レイヤー名は意味のある kebab-case であるべき。デフォルト名は禁止。",
+      "deniedPrefixes": [
+        "Rectangle ",
+        "Ellipse ",
+        "Frame ",
+        "Group ",
+        "Vector ",
+        "Line "
+      ],
+      "deniedExactNames": ["Untitled", "Component"],
+      "preferredPattern": "^[a-z][a-z0-9-]*(\\/[a-z][a-z0-9-]*)*$",
+      "fixGuidance": "意味のある名前に変更してください（例: 'card-title', 'hero/background-image'）。"
+    },
+    "responsive-frames": {
+      "enabled": true,
+      "severity": "error",
+      "description": "同一機能のPC/SPフレームが存在すべき",
+      "requiredVariants": ["pc", "sp"],
+      "_note": "Frame名やページ名に 'pc'/'sp' のサフィックスを期待。例: 'index/pc', 'index/sp'",
+      "fixGuidance": "PC用FrameとSP用Frameを作成してください。命名規約: '<page>/pc' と '<page>/sp'"
+    },
+    "image-marker": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "画像書き出し対象のレイヤーには `@img-` プレフィックスをつけるべき",
+      "appliesTo": ["RECTANGLE", "VECTOR", "FRAME"],
+      "_note": "塗りに IMAGE が設定されているレイヤー or 装飾画像として書き出しが必要なレイヤー",
+      "fixGuidance": "対象レイヤーの名前を `@img-<意味のある名前>` に変更してください。"
+    },
+    "cms-marker": {
+      "enabled": false,
+      "severity": "info",
+      "description": "CMS可変領域のレイヤーには `@cms-` プレフィックスをつけるべき（案件により有効化）",
+      "fixGuidance": "CMSで編集する領域のレイヤー名を `@cms-<フィールド名>` に変更してください。"
+    },
+    "a11y-alt": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "画像レイヤーには Description に alt 候補テキストを記入すべき",
+      "appliesTo": ["RECTANGLE", "FRAME"],
+      "_note": "塗りが IMAGE のもの。装飾画像は `@deco` の含まれる名前で除外できる。",
+      "fixGuidance": "対象レイヤーの右パネル下の Description に、alt 属性として使うテキストを記入してください。装飾画像なら 'decorative' と記入。"
+    },
+    "hard-to-reproduce": {
+      "enabled": true,
+      "severity": "warning",
+      "description": "CSSで再現困難な効果の検出（複雑なマスク、ブラー、ブレンドモード等）",
+      "patterns": [
+        "BACKGROUND_BLUR",
+        "LAYER_BLUR_intense",
+        "complex-mask",
+        "blend-mode-non-normal"
+      ],
+      "fixGuidance": "再現困難な効果が検出されました。代替表現（box-shadow、背景画像化、SVG書き出し等）への置き換えを検討してください。"
+    }
+  }
+}

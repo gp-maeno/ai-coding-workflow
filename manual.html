@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIエージェント・ワークフロー 手順書（コーダー向け）</title>
+<style>
+  :root {
+    --c-bg: #F7FAFC;
+    --c-card: #FFFFFF;
+    --c-border: #E2E8F0;
+    --c-text: #1A202C;
+    --c-text-sub: #4A5568;
+    --c-text-mute: #718096;
+    --c-primary: #2D3748;
+    --c-accent: #3182CE;
+    --c-accent-dark: #2C5282;
+    --c-highlight: #ED8936;
+    --c-success: #38A169;
+    --c-danger: #E53E3E;
+    --c-code-bg: #1A202C;
+    --c-code-text: #E2E8F0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== Sticky Nav ===== */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--c-border);
+    z-index: 100;
+    padding: 12px 0;
+  }
+  nav.toc ul {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 4px; font-size: 13px;
+  }
+  nav.toc a {
+    color: var(--c-text-sub); text-decoration: none;
+    padding: 6px 12px; border-radius: 6px; transition: all 0.15s; white-space: nowrap;
+  }
+  nav.toc a:hover { background: var(--c-bg); color: var(--c-accent); }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #2D3748 0%, #1A365D 100%);
+    color: white;
+    padding: 64px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -100px;
+    top: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(237,137,54,0.15), transparent 70%);
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .eyebrow {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--c-highlight);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .hero h1 {
+    font-size: 36px;
+    line-height: 1.3;
+    margin: 0 0 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hero p.lead {
+    font-size: 17px;
+    color: #CBD5E0;
+    margin: 0 0 32px;
+    max-width: 700px;
+  }
+  .hero .meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #A0AEC0;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .hero .meta strong { color: white; }
+
+  /* ===== Sections ===== */
+  section { padding: 56px 0; border-bottom: 1px solid var(--c-border); }
+  section.alt { background: var(--c-card); }
+  h2.section-title {
+    font-size: 26px;
+    margin: 0 0 8px;
+    color: var(--c-primary);
+    letter-spacing: -0.01em;
+  }
+  .section-sub {
+    color: var(--c-text-mute);
+    font-size: 15px;
+    margin: 0 0 32px;
+  }
+  h3 {
+    font-size: 18px;
+    color: var(--c-primary);
+    margin: 32px 0 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--c-border);
+  }
+  h3.no-border { border-top: none; padding-top: 0; }
+  h4 { font-size: 15px; margin: 20px 0 8px; }
+
+  /* ===== Steps ===== */
+  .steps { counter-reset: stepnum; margin: 24px 0; }
+  .step {
+    counter-increment: stepnum;
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-left: 4px solid var(--c-accent);
+    border-radius: var(--radius);
+    padding: 20px 24px 20px 64px;
+    margin-bottom: 16px;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+  }
+  .step::before {
+    content: counter(stepnum);
+    position: absolute;
+    left: 18px; top: 18px;
+    width: 32px; height: 32px;
+    background: var(--c-accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .step h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: var(--c-primary);
+  }
+  .step p { margin: 8px 0; color: var(--c-text-sub); font-size: 14px; }
+
+  /* ===== Code block & terminal ===== */
+  pre.code {
+    background: var(--c-code-bg);
+    color: var(--c-code-text);
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 12px 0;
+    position: relative;
+  }
+  pre.code .prompt { color: #68D391; user-select: none; }
+  pre.code .comment { color: #718096; }
+  pre.code .string { color: #FBD38D; }
+  pre.code .keyword { color: #F687B3; }
+  code.inline {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 0.9em;
+    color: var(--c-accent-dark);
+  }
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(255,255,255,0.1);
+    color: var(--c-code-text);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.2); }
+  .copy-btn.copied { background: var(--c-success); border-color: var(--c-success); }
+
+  /* ===== Callouts ===== */
+  .callout {
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-left: 4px solid var(--c-accent);
+    background: #EBF8FF;
+    font-size: 14px;
+  }
+  .callout strong { color: var(--c-accent-dark); }
+  .callout.warning {
+    background: #FFFAF0;
+    border-left-color: var(--c-highlight);
+  }
+  .callout.warning strong { color: #C05621; }
+  .callout.danger {
+    background: #FFF5F5;
+    border-left-color: var(--c-danger);
+  }
+  .callout.danger strong { color: #C53030; }
+  .callout.success {
+    background: #F0FFF4;
+    border-left-color: var(--c-success);
+  }
+  .callout.success strong { color: #2F855A; }
+
+  /* ===== Checklist ===== */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .checklist li:hover { background: var(--c-bg); }
+  .checklist li.checked {
+    opacity: 0.6;
+    text-decoration: line-through;
+    background: #F0FFF4;
+  }
+  .checklist .box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--c-border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    position: relative;
+  }
+  .checklist li.checked .box {
+    background: var(--c-success);
+    border-color: var(--c-success);
+  }
+  .checklist li.checked .box::after {
+    content: "✓";
+    color: white;
+    position: absolute;
+    left: 2px; top: -3px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  /* ===== Accordion ===== */
+  .accordion {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .accordion summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--c-primary);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.15s;
+  }
+  .accordion summary::-webkit-details-marker { display: none; }
+  .accordion summary:hover { background: var(--c-bg); }
+  .accordion summary::after {
+    content: "+";
+    font-size: 20px;
+    color: var(--c-text-mute);
+    transition: transform 0.2s;
+  }
+  .accordion[open] summary::after { content: "−"; }
+  .accordion .acc-body {
+    padding: 0 20px 16px;
+    color: var(--c-text-sub);
+    font-size: 14px;
+  }
+
+  /* ===== Tables ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--c-border);
+  }
+  th {
+    background: var(--c-bg);
+    font-weight: 600;
+    color: var(--c-text-sub);
+    font-size: 13px;
+  }
+
+  /* ===== Phase pills ===== */
+  .phase-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 16px 0 24px;
+  }
+  .phase-pill {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--c-text-sub);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .phase-pill:hover { border-color: var(--c-accent); color: var(--c-accent); }
+  .phase-pill.active {
+    background: var(--c-accent);
+    border-color: var(--c-accent);
+    color: white;
+    font-weight: 600;
+  }
+
+  /* ===== Files tree ===== */
+  .files-tree {
+    background: var(--c-code-bg);
+    color: var(--c-code-text);
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    margin: 16px 0;
+  }
+  .files-tree .dir { color: #63B3ED; }
+  .files-tree .file { color: #FAF089; }
+  .files-tree .comment { color: #718096; }
+
+  /* ===== Quick reference table ===== */
+  .quickref { font-family: "Menlo", "Consolas", monospace; font-size: 12.5px; }
+
+  /* ===== Footer ===== */
+  footer {
+    padding: 48px 0;
+    background: var(--c-primary);
+    color: #A0AEC0;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  /* ===== Print ===== */
+  @media print {
+    nav.toc { display: none; }
+    .copy-btn { display: none; }
+    .hero { background: var(--c-primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { page-break-inside: avoid; padding: 32px 0; }
+    .accordion[open] .acc-body { display: block; }
+    .accordion { page-break-inside: avoid; }
+  }
+
+  @media (max-width: 720px) {
+    .hero h1 { font-size: 26px; }
+    nav.toc ul { gap: 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc">
+  <div class="container">
+    <ul>
+      <li><a href="#overview">概要</a></li>
+      <li><a href="#setup">初期セットアップ</a></li>
+      <li><a href="#project">案件運用</a></li>
+      <li><a href="#tech">技術解説</a></li>
+      <li><a href="#review">月次レビュー</a></li>
+      <li><a href="#troubleshooting">トラブル対応</a></li>
+      <li><a href="#reference">リファレンス</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">Coder Manual · 2026.05</div>
+    <h1>AIエージェント・ワークフロー<br>使い方手順書（コーダー向け）</h1>
+    <p class="lead">Figma → Claude Code → 静的HTML のループを、初期セットアップから月次レビューまで通しで実行するための手順書です。</p>
+    <div class="meta">
+      <div><strong>対象</strong> フロントエンジニア・コーダー</div>
+      <div><strong>前提</strong> macOS / Linux 環境、ターミナル操作の基本</div>
+      <div><strong>所要</strong> 初回セットアップ 約30分</div>
+    </div>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="container">
+    <h2 class="section-title">概要 — このワークフローの全体像</h2>
+    <p class="section-sub">あなた（コーダー）が触る部分の流れを最初に把握しましょう。</p>
+
+    <h3 class="no-border">3つのフェーズ</h3>
+    <div class="phase-pills">
+      <button class="phase-pill active" data-phase="p0" type="button">① 初期セットアップ（1回）</button>
+      <button class="phase-pill" data-phase="p1" type="button">② 案件ごとの実行（毎回）</button>
+      <button class="phase-pill" data-phase="p2" type="button">③ 月次レビュー（月1回）</button>
+    </div>
+
+    <div id="phase-content">
+      <p id="p0-desc"><strong>① 初期セットアップ</strong>：このワークフローを使い始めるときに1回だけ行う作業です。Node.js環境、Figmaトークン、リポジトリ取得、Playwright インストールなどが含まれます。所要時間 約30分。</p>
+      <p id="p1-desc" style="display:none;"><strong>② 案件ごとの実行</strong>：新しい案件が始まるたびに行う作業です。Figma構造チェック → 中間仕様生成 → Visual Diffループ → 振り返り、という流れで進めます。所要時間は案件規模次第。</p>
+      <p id="p2-desc" style="display:none;"><strong>③ 月次レビュー</strong>：月に1回、または案件3件溜まった時点で行う振り返り会です。ダッシュボード確認、ルール更新提案レビュー、チームへの共有が含まれます。所要時間 約30分。</p>
+    </div>
+
+    <h3>ワークフロー全体図</h3>
+    <div style="background:var(--c-card); border:1px solid var(--c-border); border-radius:var(--radius); padding:20px; margin:16px 0; overflow-x:auto;">
+      <svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" style="display:block; margin:0 auto; max-width:100%;">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#4A5568"/>
+          </marker>
+        </defs>
+        <rect x="20" y="40" width="140" height="60" rx="8" fill="#EBF8FF" stroke="#3182CE" stroke-width="2"/>
+        <text x="90" y="65" text-anchor="middle" font-size="13" font-weight="600">Figma受領</text>
+        <text x="90" y="83" text-anchor="middle" font-size="11" fill="#4A5568">デザイナーから</text>
+
+        <rect x="200" y="40" width="140" height="60" rx="8" fill="#EBF8FF" stroke="#3182CE" stroke-width="2"/>
+        <text x="270" y="60" text-anchor="middle" font-size="13" font-weight="600">構造チェック</text>
+        <text x="270" y="78" text-anchor="middle" font-size="11" fill="#4A5568">structure-check Skill</text>
+        <text x="270" y="93" text-anchor="middle" font-size="10" fill="#ED8936">違反があれば差し戻し</text>
+
+        <rect x="380" y="40" width="140" height="60" rx="8" fill="#EBF8FF" stroke="#3182CE" stroke-width="2"/>
+        <text x="450" y="60" text-anchor="middle" font-size="13" font-weight="600">中間仕様生成</text>
+        <text x="450" y="78" text-anchor="middle" font-size="11" fill="#4A5568">figma-to-spec Skill</text>
+        <text x="450" y="93" text-anchor="middle" font-size="10" fill="#ED8936">TODO埋め</text>
+
+        <rect x="560" y="40" width="140" height="60" rx="8" fill="#F0FFF4" stroke="#38A169" stroke-width="2"/>
+        <text x="630" y="60" text-anchor="middle" font-size="13" font-weight="600">Visual Diff Loop</text>
+        <text x="630" y="78" text-anchor="middle" font-size="11" fill="#4A5568">Claude Code自走</text>
+        <text x="630" y="93" text-anchor="middle" font-size="10" fill="#38A169">再現率 95%+</text>
+
+        <rect x="740" y="40" width="140" height="60" rx="8" fill="#FFFAF0" stroke="#ED8936" stroke-width="2"/>
+        <text x="810" y="60" text-anchor="middle" font-size="13" font-weight="600">振り返り</text>
+        <text x="810" y="78" text-anchor="middle" font-size="11" fill="#4A5568">retrospective.md</text>
+        <text x="810" y="93" text-anchor="middle" font-size="10" fill="#ED8936">AI生成+補完</text>
+
+        <line x1="160" y1="70" x2="195" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="340" y1="70" x2="375" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="520" y1="70" x2="555" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="700" y1="70" x2="735" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+
+        <!-- 人/AI の関与 -->
+        <text x="90" y="135" text-anchor="middle" font-size="11" fill="#718096">- (デザイナー)</text>
+        <text x="270" y="135" text-anchor="middle" font-size="11" fill="#3182CE">あなたが実行</text>
+        <text x="450" y="135" text-anchor="middle" font-size="11" fill="#3182CE">あなたが実行+補完</text>
+        <text x="630" y="135" text-anchor="middle" font-size="11" fill="#38A169">Claude Code自走</text>
+        <text x="810" y="135" text-anchor="middle" font-size="11" fill="#ED8936">AI+あなたが補完</text>
+
+        <!-- 月次レビュー -->
+        <rect x="280" y="180" width="360" height="60" rx="8" fill="#F7FAFC" stroke="#4A5568" stroke-dasharray="5,3"/>
+        <text x="460" y="205" text-anchor="middle" font-size="13" font-weight="600">月次レビュー</text>
+        <text x="460" y="225" text-anchor="middle" font-size="11" fill="#4A5568">retrospectives 集約 → ルール更新提案 → ダッシュボード</text>
+
+        <line x1="810" y1="100" x2="810" y2="180" stroke="#4A5568" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="810" y1="210" x2="645" y2="210" stroke="#4A5568" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#ar)"/>
+      </svg>
+    </div>
+
+    <div class="callout">
+      <strong>💡 ポイント</strong>：あなたが「実行」「補完」する部分と、Claude Code が「自走」する部分がはっきり分かれています。AI に任せられるところは任せ、人にしかできない部分（仕様の補完、最終確認、コーダー追記）に集中しましょう。
+    </div>
+  </div>
+</section>
+
+<section id="setup" class="alt">
+  <div class="container">
+    <h2 class="section-title">① 初期セットアップ（1回だけ）</h2>
+    <p class="section-sub">最初に1回だけ行う環境構築の手順です。所要 約30分。</p>
+
+    <h3 class="no-border">事前準備チェックリスト</h3>
+    <ul class="checklist">
+      <li><span class="box"></span><span>macOS または Linux（WSLでも可）</span></li>
+      <li><span class="box"></span><span>Node.js 20以上 がインストール済み（<code class="inline">node -v</code> で確認）</span></li>
+      <li><span class="box"></span><span>git が使える環境</span></li>
+      <li><span class="box"></span><span>Claude Code がインストール済み</span></li>
+      <li><span class="box"></span><span>Figma アカウントを持っている</span></li>
+      <li><span class="box"></span><span><strong>Figma Desktop App</strong> がインストール済み（ブラウザ版だけでは MCP が使えない）</span></li>
+      <li><span class="box"></span><span>Figma の <strong>Professional プラン以上</strong>（Dev Mode が含まれる）</span></li>
+    </ul>
+
+    <div class="steps">
+
+      <div class="step">
+        <h4>Step 1: 社内Gitリポジトリをクローン</h4>
+        <p>このワークフロー用のリポジトリを取得します。社内Gitに <code class="inline">ai-coding-workflow</code> として登録されている想定です。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>git clone https://git.your-company.internal/web/ai-coding-workflow.git
+<span class="prompt">$ </span>cd ai-coding-workflow</pre>
+      </div>
+
+      <div class="step">
+        <h4>Step 2: Node.js依存関係をインストール</h4>
+        <p>Visual Diff ループで使う <code class="inline">pixelmatch</code>, <code class="inline">playwright</code>, <code class="inline">pngjs</code> をインストールします。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>cd visual-diff-loop
+<span class="prompt">$ </span>npm install
+<span class="prompt">$ </span>npx playwright install chromium</pre>
+        <div class="callout warning">
+          <strong>注意</strong>：Playwright の Chromium ダウンロードは約100MBあります。社内プロキシ環境の場合は <code class="inline">HTTPS_PROXY</code> 環境変数を設定してください。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 3: Figma個人アクセストークンを取得</h4>
+        <p>Figma にログイン → 右上のアイコン → Settings → Personal access tokens → "Generate new token" でトークンを作成。スコープは "File content" 読み取りが最低限必要です。</p>
+        <p>取得したトークンを安全な場所に保管します。<code class="inline">~/.zshrc</code> や <code class="inline">~/.bashrc</code> に追記する例：</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="comment"># ~/.zshrc などに追記</span>
+<span class="keyword">export</span> FIGMA_TOKEN=<span class="string">"figd_xxxxxxxxxxxxxxxxxxxxx"</span></pre>
+        <p>反映するには <code class="inline">source ~/.zshrc</code> またはターミナル再起動。</p>
+        <div class="callout danger">
+          <strong>セキュリティ</strong>：このトークンは Figma の全ファイルにアクセス可能です。<strong>絶対にGitにコミットしないでください</strong>。<code class="inline">.gitignore</code> に <code class="inline">.env</code> が含まれていることを確認。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 4: Claude Code が Skill を認識できるか確認</h4>
+        <p>このリポジトリの <code class="inline">skills/</code> 配下を、Claude Code が認識できるパスに配置するか、シンボリックリンクします。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="comment"># 例: ~/.claude/skills/ にリンク</span>
+<span class="prompt">$ </span>ln -s "$(pwd)/skills/figma-structure-check" ~/.claude/skills/
+<span class="prompt">$ </span>ln -s "$(pwd)/skills/figma-to-spec" ~/.claude/skills/
+<span class="prompt">$ </span>ln -s "$(pwd)/skills/workflow-improvement" ~/.claude/skills/</pre>
+        <p>Claude Code を起動して、Skill が見えるか確認：</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>claude
+<span class="comment"># Claude Code 内で:</span>
+<span class="prompt">&gt; </span>list_skills
+<span class="comment"># → figma-structure-check, figma-to-spec, workflow-improvement が表示されればOK</span></pre>
+      </div>
+
+      <div class="step">
+        <h4>Step 5: Figma Dev Mode MCP Server を有効化（推奨）</h4>
+        <p>Claude Code が Figma の構造を直接読み取れるようにします。これは「経路1: Figma MCP」に対応する設定で、無くてもワークフローは degrade モードで動きますが、設定すると再現率が安定し、AI とのやり取りもスムーズになります。</p>
+
+        <h5 style="margin-top:16px; font-size:13px; color:var(--c-text-mute);">A. Figma Desktop App 側を ON にする</h5>
+        <ol style="font-size:14px;">
+          <li>Figma Desktop App を起動</li>
+          <li>メニューから <strong>Figma → Preferences</strong>（macOS）または <strong>メニュー → Preferences</strong>（Windows）</li>
+          <li><strong>"Enable Dev Mode MCP Server"</strong> のトグルを ON にする</li>
+          <li>確認メッセージが出たら承認</li>
+          <li>「Server is running on http://127.0.0.1:3845」 のような表示が出れば成功</li>
+        </ol>
+
+        <h5 style="margin-top:20px; font-size:13px; color:var(--c-text-mute);">B. Claude Code 側に MCP サーバーを登録</h5>
+        <p>コマンドラインで登録するのが手軽です：</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>claude mcp add figma --transport sse --url http://127.0.0.1:3845/sse</pre>
+        <p>または、<code class="inline">~/.claude/settings.json</code>（グローバル）または<br>プロジェクトルートの <code class="inline">.mcp.json</code> に以下を直接記述：</p>
+        <pre class="code"><button class="copy-btn">copy</button>{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"figma"</span>: {
+      <span class="string">"type"</span>: <span class="string">"sse"</span>,
+      <span class="string">"url"</span>: <span class="string">"http://127.0.0.1:3845/sse"</span>
+    }
+  }
+}</pre>
+
+        <h5 style="margin-top:20px; font-size:13px; color:var(--c-text-mute);">C. 動作確認</h5>
+        <ol style="font-size:14px;">
+          <li>Figma Desktop App で適当なテスト用ファイルを開いておく</li>
+          <li>別ターミナルで Claude Code を起動</li>
+          <li>Claude Code 内で次のように質問する：
+            <pre class="code" style="margin-top:8px;"><span class="prompt">&gt; </span>figma の MCP ツールは使えますか？利用可能なツール一覧を見せてください。</pre>
+          </li>
+          <li><code class="inline">get_code</code>, <code class="inline">get_image</code>, <code class="inline">get_variable_defs</code> などのツール一覧が表示されればOK</li>
+        </ol>
+
+        <div class="callout warning">
+          <strong>注意</strong>：作業中は Figma Desktop App を起動しっぱなしにしてください。アプリを閉じると MCP サーバーも停止します。
+        </div>
+
+        <div class="callout">
+          <strong>💡 個人プランの場合</strong>：Dev Mode MCP は Professional 以上のプランに含まれます。個人プランの方は (1) Professional へアップグレード、(2) コミュニティ製の <code class="inline">figma-developer-mcp</code> を npm で導入、(3) MCP なしの degrade モードで運用、のいずれかを選択してください。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 6: 動作確認（任意）</h4>
+        <p>サンプル Figma ファイルキーで動作確認します。サンプル用のFigmaキーは社内 Wiki <code class="inline">/web/ai-coding-workflow/sample</code> に掲載があります（想定）。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span><span class="keyword">export</span> FIGMA_FILE_KEY=<span class="string">"sample_xxxxxxxx"</span>
+<span class="prompt">$ </span>node skills/figma-structure-check/scripts/check-figma.js --report</pre>
+        <p>レポートが出力され、Claude Code 内で Figma MCP ツールが見えていればセットアップ完了です。</p>
+      </div>
+
+    </div>
+
+    <div class="callout success">
+      <strong>✅ セットアップ完了！</strong> 次は実際の案件で運用に入ります。「案件ごとの実行手順」セクションへ進んでください。
+    </div>
+  </div>
+</section>
+
+<section id="project">
+  <div class="container">
+    <h2 class="section-title">② 案件ごとの実行手順</h2>
+    <p class="section-sub">新しい案件が始まるたびにこの流れを実行します。</p>
+
+    <h3 class="no-border">案件開始時のチェックリスト</h3>
+    <ul class="checklist">
+      <li><span class="box"></span><span>デザイナーから Figma URL を受領した</span></li>
+      <li><span class="box"></span><span>案件名・業種・CMSが分かっている</span></li>
+      <li><span class="box"></span><span>ディレクターから WBS / 工期 を受領した</span></li>
+      <li><span class="box"></span><span>顧客固有の業界制約（薬機法/WCAG等）の確認が済んでいる</span></li>
+    </ul>
+
+    <div class="steps">
+
+      <div class="step">
+        <h4>Step 1: 案件ディレクトリを作成</h4>
+        <p>案件ごとに独立したディレクトリを切ります。命名規約：<code class="inline">yyyymm-案件slug</code></p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>cd ~/projects/
+<span class="prompt">$ </span>cp -r ~/ai-coding-workflow/visual-diff-loop ./202605-osaka-koukou
+<span class="prompt">$ </span>cd 202605-osaka-koukou</pre>
+      </div>
+
+      <div class="step">
+        <h4>Step 2: 環境変数に Figma ファイルキーを設定</h4>
+        <p>Figma URL の <code class="inline">/file/【ここ】/...</code> 部分がファイルキーです。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span><span class="keyword">export</span> FIGMA_FILE_KEY=<span class="string">"abc123XYZdef"</span>
+<span class="comment"># FIGMA_TOKEN は .zshrc で設定済みのはず</span></pre>
+      </div>
+
+      <div class="step">
+        <h4>Step 3: Figma構造チェック（必須・最初に行う）</h4>
+        <p>デザインが「AIに渡せる状態」かを確認します。エラーが出たら<strong>コーディングに入らず</strong>、デザイナーへ差し戻します。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>node ~/ai-coding-workflow/skills/figma-structure-check/scripts/check-figma.js --report &gt; report/structure-check.md
+<span class="comment"># JSON形式も同時に出力（自動振り返りで使う）</span>
+<span class="prompt">$ </span>node ~/ai-coding-workflow/skills/figma-structure-check/scripts/check-figma.js &gt; report/structure-check.json</pre>
+        <div class="callout warning">
+          <strong>判定ルール</strong>：エラー（error）が1件でもあれば、デザイナーへ <code class="inline">report/structure-check.md</code> をそのまま送って差し戻し。警告（warning）のみなら次に進んで良いが、再現率が伸びない場合は警告も見直しの対象。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 4: 中間仕様 spec.md を生成（自動）</h4>
+        <p>Figma構造から spec.md の叩き台を自動生成します。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>node ~/ai-coding-workflow/skills/figma-to-spec/scripts/generate-spec.js \
+    --project <span class="string">"○○高校コーポレートサイト"</span> \
+    --out ./docs/spec.md</pre>
+        <p>標準エラー出力に「TODO残数」が表示されるので確認します。</p>
+      </div>
+
+      <div class="step">
+        <h4>Step 5: spec.md の [TODO] を埋める（あなたとディレクターの作業）</h4>
+        <p>生成されたspec.mdをエディタで開き、<code class="inline">[TODO]</code> マーカーをすべて埋めます。</p>
+        <p>埋めるべき主な項目：</p>
+        <ul>
+          <li>顧客名、業種、ターゲット、業界制約</li>
+          <li>公開URL、CMS種別</li>
+          <li>インタラクション仕様（Figma Prototypeでカバーされていないもの）</li>
+          <li>検収基準（再現率閾値、Lighthouseスコア目標）</li>
+          <li>再現困難パターン検出時の対応方針</li>
+        </ul>
+        <div class="callout">
+          <strong>💡 ディレクターと協働</strong>：顧客情報・業界制約はディレクターから情報をもらいながら埋めます。「Slack で確認 → spec.md に転記」のリズムで進めましょう。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 6: targets.json を編集して比較対象を指定</h4>
+        <p>Visual Diff で比較する各セクションの Figma Node ID と、レンダリング先URLの対応を <code class="inline">scripts/targets.json</code> に記述します。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="comment">// scripts/targets.json</span>
+{
+  <span class="string">"targets"</span>: [
+    {
+      <span class="string">"id"</span>: <span class="string">"hero"</span>,
+      <span class="string">"label"</span>: <span class="string">"ヒーロー"</span>,
+      <span class="string">"figmaNodeId"</span>: <span class="string">"1:23"</span>,
+      <span class="string">"renderUrl"</span>: <span class="string">"http://localhost:3000/index.html#hero"</span>,
+      <span class="string">"viewports"</span>: [<span class="string">"pc"</span>, <span class="string">"sp"</span>],
+      <span class="string">"threshold"</span>: 0.97
+    }
+  ]
+}</pre>
+        <p>Figma Node ID は、Figma上でセクションを選択 → 右上の「Share」→ URLの <code class="inline">?node-id=【ここ】</code> から取得できます。</p>
+      </div>
+
+      <div class="step">
+        <h4>Step 7: Claude Code を起動して Visual Diff ループを開始</h4>
+        <p>案件ディレクトリで <code class="inline">claude</code> コマンドを起動。Claude Code はルートの <code class="inline">CLAUDE.md</code> を自動で読み、ループに入ります。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>claude
+<span class="comment"># Claude Code 内で:</span>
+<span class="prompt">&gt; </span>docs/spec.md と targets.json を読み、Visual Diff ループを開始してください</pre>
+        <p>あとは Claude Code が自走します。以下を繰り返します：</p>
+        <ol>
+          <li><code class="inline">npm run fetch-figma</code> で正解画像取得</li>
+          <li><code class="inline">src/</code> に静的HTML生成</li>
+          <li><code class="inline">npx serve src -p 3000</code> でローカル起動</li>
+          <li><code class="inline">npm run render</code> でスクショ</li>
+          <li><code class="inline">npm run diff</code> で比較</li>
+          <li>閾値未満なら差分を読んで修正 → 2 に戻る</li>
+        </ol>
+        <div class="callout">
+          <strong>あなたの役割</strong>：基本は見守るだけ。Claude Code が判断に詰まったり、Figmaに再現不能な指定を見つけた時に質問してきます。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 8: 最終確認</h4>
+        <p>Claude Code が「完了」と報告したら、生成された <code class="inline">report/index.html</code> をブラウザで開いて目視確認します。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>open report/index.html</pre>
+        <p>確認ポイント：</p>
+        <ul class="checklist">
+          <li><span class="box"></span><span>Figma / 生成 / 差分 の3カラムで全ターゲットが PASS している</span></li>
+          <li><span class="box"></span><span>差分があってもピクセル単位の細かい差で本質的に問題ない</span></li>
+          <li><span class="box"></span><span>セマンティックHTMLが適切（<code class="inline">&lt;article&gt;</code>, <code class="inline">&lt;section&gt;</code>, 見出し階層）</span></li>
+          <li><span class="box"></span><span>レスポンシブが意図通り動く</span></li>
+          <li><span class="box"></span><span>WCAG 2.1 AAレベルのアクセシビリティが守られている</span></li>
+        </ul>
+      </div>
+
+      <div class="step">
+        <h4>Step 9: 振り返り（retrospective.md）の作成</h4>
+        <p>Claude Code が <code class="inline">CLAUDE.md</code> の指示に従って自動で <code class="inline">retrospective.md</code> を生成しているはずです。生成されていなければ手動で実行：</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>node ~/ai-coding-workflow/skills/workflow-improvement/scripts/generate-retrospective.js \
+    --project <span class="string">"○○高校コーポレートサイト"</span> \
+    --diff-report ./report/diff.json \
+    --spec ./docs/spec.md \
+    --structure-check ./report/structure-check.json \
+    --duration 47 \
+    --iterations 3 \
+    --out ./retrospectives/202605-osaka-koukou.md</pre>
+        <p>生成された <code class="inline">retrospectives/202605-osaka-koukou.md</code> を開き、<code class="inline">[CODER NOTE]</code> セクションを 5〜10分で埋めます。</p>
+        <p><strong>埋めるのは4つだけ</strong>：</p>
+        <ol>
+          <li>AI が捉えきれていない問題</li>
+          <li>再現率は出たが本質的には正しくない箇所</li>
+          <li>デザイナーへ伝えたい改善要望</li>
+          <li>このワークフローへの改善要望</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h4>Step 10: バックエンジニアへの引き継ぎ</h4>
+        <p>静的HTMLが完成したら、バックエンドエンジニアに渡します。引き継ぎセットには以下を含めます：</p>
+        <ul>
+          <li><code class="inline">src/</code> — 静的HTML/CSS/JS一式</li>
+          <li><code class="inline">docs/spec.md</code> — 中間仕様（CMS可変領域の定義含む）</li>
+          <li><code class="inline">report/diff.json</code> — 最終再現率レポート（参考）</li>
+        </ul>
+        <p>共有Gitリポジトリにコミットしてプルリクを作成、またはZip化して共有フォルダへ。</p>
+      </div>
+
+      <div class="step">
+        <h4>Step 11: 中央リポジトリに retrospective をコミット</h4>
+        <p>案件ディレクトリの <code class="inline">retrospectives/</code> 配下のファイルを、社内ワークフロー用Gitリポジトリの <code class="inline">retrospectives/</code> へコミットします。月次レビューで集計されます。</p>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>cp ./retrospectives/202605-osaka-koukou.md ~/ai-coding-workflow/retrospectives/
+<span class="prompt">$ </span>cd ~/ai-coding-workflow
+<span class="prompt">$ </span>git add retrospectives/202605-osaka-koukou.md
+<span class="prompt">$ </span>git commit -m <span class="string">"retro: ○○高校コーポレートサイト"</span>
+<span class="prompt">$ </span>git push</pre>
+      </div>
+
+    </div>
+
+    <div class="callout success">
+      <strong>✅ 案件完了！</strong> お疲れさまでした。retrospective が蓄積されることで、次の案件でルールがより精緻化されていきます。
+    </div>
+  </div>
+</section>
+
+<section id="tech" class="alt">
+  <div class="container">
+    <h2 class="section-title">技術解説 — Figma の情報がどう流れるか</h2>
+    <p class="section-sub">Step 7「Visual Diff ループ」の内部で、Claude Code が Figma の情報をどう扱っているかを解説します。深く理解しなくても運用はできますが、ループが詰まった時にここを知っていると判断が早くなります。</p>
+
+    <h3 class="no-border">3つの経路で Figma の情報を扱う</h3>
+    <p>「Figma → 静的HTML」と一言で言っても、実は性質の違う3種類のデータが流れています。これを混ぜると設計が破綻するので、経路を分けています。</p>
+
+    <div style="background:var(--c-card); border:1px solid var(--c-border); border-radius:var(--radius); padding:20px; margin:16px 0; overflow-x:auto;">
+      <svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" style="display:block; margin:0 auto; max-width:100%;">
+        <defs>
+          <marker id="arT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#4A5568"/>
+          </marker>
+        </defs>
+        <!-- Figma source of truth -->
+        <rect x="250" y="20" width="400" height="60" rx="10" fill="#2D3748"/>
+        <text x="450" y="48" text-anchor="middle" font-size="16" font-weight="700" fill="white">Figma（デザイン真理値）</text>
+        <text x="450" y="68" text-anchor="middle" font-size="11" fill="#CBD5E0">1つのソースから3つの経路でデータが流れる</text>
+
+        <!-- 3 paths from Figma -->
+        <line x1="350" y1="80" x2="150" y2="135" stroke="#4A5568" stroke-width="2" marker-end="url(#arT)"/>
+        <line x1="450" y1="80" x2="450" y2="135" stroke="#4A5568" stroke-width="2" marker-end="url(#arT)"/>
+        <line x1="550" y1="80" x2="750" y2="135" stroke="#4A5568" stroke-width="2" marker-end="url(#arT)"/>
+
+        <!-- Path 1: MCP -->
+        <rect x="40" y="140" width="220" height="100" rx="10" fill="#EBF8FF" stroke="#3182CE" stroke-width="2"/>
+        <text x="150" y="162" text-anchor="middle" font-size="12" font-weight="700" fill="#2C5282">経路1: Figma MCP</text>
+        <text x="150" y="180" text-anchor="middle" font-size="11" fill="#2D3748">「読む」ための経路</text>
+        <text x="150" y="200" text-anchor="middle" font-size="10" fill="#4A5568">構造・スタイル・トークン</text>
+        <text x="150" y="215" text-anchor="middle" font-size="10" fill="#4A5568">CSS候補・テキスト</text>
+        <text x="150" y="232" text-anchor="middle" font-size="10" font-weight="600" fill="#3182CE">AI の「目」</text>
+
+        <!-- Path 2: fetch-figma.js -->
+        <rect x="340" y="140" width="220" height="100" rx="10" fill="#F0FFF4" stroke="#38A169" stroke-width="2"/>
+        <text x="450" y="162" text-anchor="middle" font-size="12" font-weight="700" fill="#276749">経路2: fetch-figma.js</text>
+        <text x="450" y="180" text-anchor="middle" font-size="11" fill="#2D3748">「正解画像」を取る経路</text>
+        <text x="450" y="200" text-anchor="middle" font-size="10" fill="#4A5568">Frame 全体を PNG 化</text>
+        <text x="450" y="215" text-anchor="middle" font-size="10" fill="#4A5568">references/ に保存</text>
+        <text x="450" y="232" text-anchor="middle" font-size="10" font-weight="600" fill="#38A169">ピクセル比較の真理値</text>
+
+        <!-- Path 3: assets -->
+        <rect x="640" y="140" width="220" height="100" rx="10" fill="#FFFAF0" stroke="#ED8936" stroke-width="2"/>
+        <text x="750" y="162" text-anchor="middle" font-size="12" font-weight="700" fill="#C05621">経路3: アセット書き出し</text>
+        <text x="750" y="180" text-anchor="middle" font-size="11" fill="#2D3748">「素材」を取る経路</text>
+        <text x="750" y="200" text-anchor="middle" font-size="10" fill="#4A5568">@img- レイヤーを書き出し</text>
+        <text x="750" y="215" text-anchor="middle" font-size="10" fill="#4A5568">SVG or PNG</text>
+        <text x="750" y="232" text-anchor="middle" font-size="10" font-weight="600" fill="#ED8936">実装の「材料」</text>
+
+        <!-- Outputs -->
+        <line x1="150" y1="240" x2="150" y2="270" stroke="#4A5568" stroke-width="2" marker-end="url(#arT)"/>
+        <line x1="450" y1="240" x2="450" y2="270" stroke="#4A5568" stroke-width="2" marker-end="url(#arT)"/>
+        <line x1="750" y1="240" x2="750" y2="270" stroke="#4A5568" stroke-width="2" marker-end="url(#arT)"/>
+
+        <rect x="40" y="275" width="220" height="60" rx="8" fill="white" stroke="#3182CE"/>
+        <text x="150" y="298" text-anchor="middle" font-size="12" font-weight="600" fill="#2D3748">Claude Code が</text>
+        <text x="150" y="316" text-anchor="middle" font-size="12" font-weight="600" fill="#2D3748">コードを書く</text>
+
+        <rect x="340" y="275" width="220" height="60" rx="8" fill="white" stroke="#38A169"/>
+        <text x="450" y="298" text-anchor="middle" font-size="12" font-weight="600" fill="#2D3748">pixelmatch が</text>
+        <text x="450" y="316" text-anchor="middle" font-size="12" font-weight="600" fill="#2D3748">差分を計算する</text>
+
+        <rect x="640" y="275" width="220" height="60" rx="8" fill="white" stroke="#ED8936"/>
+        <text x="750" y="298" text-anchor="middle" font-size="12" font-weight="600" fill="#2D3748">&lt;img&gt; / &lt;svg&gt; として</text>
+        <text x="750" y="316" text-anchor="middle" font-size="12" font-weight="600" fill="#2D3748">HTMLに埋め込む</text>
+      </svg>
+    </div>
+
+    <h3>3経路の比較表</h3>
+    <table>
+      <tr>
+        <th>項目</th>
+        <th>経路1: MCP</th>
+        <th>経路2: fetch-figma.js</th>
+        <th>経路3: アセット書き出し</th>
+      </tr>
+      <tr>
+        <td><strong>目的</strong></td>
+        <td>AI がデザイン構造を読む</td>
+        <td>比較用の正解画像を得る</td>
+        <td>HTML に埋め込む素材を得る</td>
+      </tr>
+      <tr>
+        <td><strong>タイミング</strong></td>
+        <td>コーディング中（毎回）</td>
+        <td>セッション開始時（1回）</td>
+        <td>実装中（必要に応じて）</td>
+      </tr>
+      <tr>
+        <td><strong>取得形式</strong></td>
+        <td>JSON（ノードツリー、CSS候補）</td>
+        <td>PNG（Frame 全体レンダリング）</td>
+        <td>SVG / PNG（個別レイヤー）</td>
+      </tr>
+      <tr>
+        <td><strong>保存先</strong></td>
+        <td>AI コンテキスト（disk 不要）</td>
+        <td><code class="inline">references/</code></td>
+        <td><code class="inline">src/images/</code> または インライン</td>
+      </tr>
+      <tr>
+        <td><strong>使うもの</strong></td>
+        <td>Claude Code</td>
+        <td>pixelmatch</td>
+        <td>ブラウザ（最終ユーザー）</td>
+      </tr>
+      <tr>
+        <td><strong>解像度</strong></td>
+        <td>—</td>
+        <td>2x（比較用に高解像度）</td>
+        <td>1x or 2x（運用ポリシー次第）</td>
+      </tr>
+    </table>
+
+    <h3>アセット実装ルール（@img- などの判断ロジック）</h3>
+    <p>Claude Code は CLAUDE.md に書かれたこのルールに従って、レイヤーごとに最適な実装方法を選びます。</p>
+    <table>
+      <tr>
+        <th>Figmaレイヤーの種類</th>
+        <th>HTMLでの扱い</th>
+        <th>例</th>
+      </tr>
+      <tr>
+        <td><code class="inline">@img-</code> かつ VECTOR</td>
+        <td>インライン SVG として埋め込み</td>
+        <td><code class="inline">&lt;svg viewBox="..."&gt;&lt;path d="..."/&gt;&lt;/svg&gt;</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">@img-</code> かつ IMAGE fill</td>
+        <td>外部画像として書き出し→参照</td>
+        <td><code class="inline">&lt;img src="images/hero.png" alt="..."&gt;</code></td>
+      </tr>
+      <tr>
+        <td>グラデーション・シャドウ</td>
+        <td>CSS で再現（画像化禁止）</td>
+        <td><code class="inline">background: linear-gradient(...);</code></td>
+      </tr>
+      <tr>
+        <td>シンプルなアイコン</td>
+        <td>原則インライン SVG</td>
+        <td>CSS で <code class="inline">fill</code> 変更可能にする</td>
+      </tr>
+      <tr>
+        <td>装飾文字（飾り絵文字等）</td>
+        <td>SVG 化を検討、CSS擬似要素で代替可能</td>
+        <td>—</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>💡 インライン SVG を優先する理由</strong>：CSS から色やサイズを後で変更できる、HTTP リクエストが減る、ファイルサイズが小さい（小さい画像なら）、印刷時にも綺麗。一方でファイル本体に直接書かれるので、再利用するなら外部 SVG にする判断もアリ。
+    </div>
+
+    <h3>なぜ fetch-figma.js を Figma MCP に統合しなかったか</h3>
+    <p>理論上は「Figma MCP だけで全部やる」設計も可能ですが、5つの理由で分離しています。</p>
+
+    <div style="background:var(--c-card); border:1px solid var(--c-border); border-radius:var(--radius); padding:0; margin:16px 0;">
+      <details class="accordion" style="border:none; margin:0;">
+        <summary>1. 決定論性 — 毎回同じ結果が必要</summary>
+        <div class="acc-body">
+          <p>Visual Diff の比較は、毎回まったく同じ参照画像で行わないと再現率の数値が安定しません。MCP 経由だと、呼び出しタイミングや内部処理の揺らぎで微妙な差が出る可能性があります。ローカルキャッシュにすれば完全に安定します。</p>
+        </div>
+      </details>
+      <details class="accordion" style="border:none; margin:0; border-top:1px solid var(--c-border);">
+        <summary>2. トークンコスト — 5回反復で大量消費</summary>
+        <div class="acc-body">
+          <p>Visual Diff ループは最大5回反復します。毎回MCPで画像を引いていたらトークンを大量消費します。一度ローカルに置けば、追加コストはゼロです。</p>
+        </div>
+      </details>
+      <details class="accordion" style="border:none; margin:0; border-top:1px solid var(--c-border);">
+        <summary>3. 責務分離 — pixel diff は決定論的処理</summary>
+        <div class="acc-body">
+          <p>pixel diff は「決定論的・スクリプト的」処理であり、AI 推論を介在させるべきではありません。Claude Code が誤った判断をしても、diff 自体は常に同じ結果を返す状態が望ましい。</p>
+        </div>
+      </details>
+      <details class="accordion" style="border:none; margin:0; border-top:1px solid var(--c-border);">
+        <summary>4. パイプライン互換性 — disk上のファイルが必要</summary>
+        <div class="acc-body">
+          <p>pixelmatch も Playwright も「disk 上のファイル」を要求します。MCP のレスポンスをファイル化するより、最初から disk に置く方が自然です。</p>
+        </div>
+      </details>
+      <details class="accordion" style="border:none; margin:0; border-top:1px solid var(--c-border);">
+        <summary>5. バージョン管理 — デザイン履歴のスナップショット</summary>
+        <div class="acc-body">
+          <p>参照画像を <code class="inline">references/</code> に置けば「いつデザインが変わったか」のスナップショットになります（任意で git にコミット可能）。差分の原因がデザイン変更にあるかを後追いできます。</p>
+        </div>
+      </details>
+    </div>
+
+    <h3>Step 7 の内部動作（技術的分解）</h3>
+    <p>手順書の Step 7「Visual Diff ループを開始」の中で、3つの経路がどう連携するかを順を追って示します。</p>
+
+    <pre class="code">[Claude Code 起動]
+   │
+   ├─ Read: CLAUDE.md / docs/spec.md / scripts/targets.json
+   │
+   ▼
+[Figma MCP 接続]                                          <span class="comment">← 経路1</span>
+   AI: 「ヒーローセクションの構造を教えて」
+   MCP: 「Frame "Hero", Auto Layout: vertical, padding: 96px...
+         子要素:
+           TEXT "title" (font-size: 36px, color: var(--color-primary))
+           RECTANGLE "@img-hero-bg" (image fill)
+           VECTOR "@img-arrow" (path: ...)」
+   │
+   ├─ 並行: <span class="keyword">npm run fetch-figma</span>                        <span class="comment">← 経路2</span>
+   │   → references/pc/hero.png 取得（正解画像）
+   │   → references/pc/feature.png 取得
+   │
+   ▼
+[Claude Code がコード生成]
+   - HTML/CSS は経路1（MCP の情報）から書く
+   - @img-hero-bg → Figma Image API で書き出し          <span class="comment">← 経路3</span>
+     → src/images/hero-bg.png
+     → HTML: &lt;img src="images/hero-bg.png" alt="..."&gt;
+   - @img-arrow → SVG として書き出し → インライン埋め込み <span class="comment">← 経路3</span>
+     → HTML: &lt;svg viewBox="..."&gt;&lt;path d="..."/&gt;&lt;/svg&gt;
+   - グラデーション → CSS の linear-gradient で再現
+     （経路3 は使わない、画像化しない）
+   │
+   ▼
+[npx serve src で起動 → render.js でスクショ取得]
+   → renders/pc/hero.png（Playwright が生成）
+   │
+   ▼
+[visual-diff.js 実行]                                       <span class="comment">← 経路2 を使う</span>
+   references/pc/hero.png ↔ renders/pc/hero.png
+   pixelmatch で比較
+   → report/diff.json にスコア記録
+   │
+   ▼
+[Claude Code が diff.json を読む]
+   pass: false → 差分画像を見て src/ を修正 → 上に戻る
+   pass: true  → 完了 → retrospective 生成へ</pre>
+
+    <h3>運用中の落とし穴</h3>
+    <p>この経路分離の理解が曖昧だと、次のような不具合が起きます。気づいたらここを疑ってください。</p>
+    <div class="callout danger">
+      <strong>落とし穴1：経路2と経路3を取り違える</strong><br>
+      参照用 PNG をそのまま HTML に埋め込むと、ページが重くなる（高解像度すぎる）。逆に、HTML 埋め込み用の低解像度画像で Visual Diff を実行すると、常に偽の差分が出る。
+    </div>
+    <div class="callout danger">
+      <strong>落とし穴2：経路1（MCP）だけで実装しようとする</strong><br>
+      Claude Code が「Figma が見ている JSON」だけで実装すると、ピクセル単位の差を検出できない。経路2 が無いと比較できず、再現率の数値も出ない。
+    </div>
+    <div class="callout danger">
+      <strong>落とし穴3：経路3を CSS で済まそうとする</strong><br>
+      写真や複雑な装飾を CSS だけで再現しようとすると不可能で、再現率が頭打ちになる。素材として書き出すべきは書き出す。
+    </div>
+
+    <h3>関連リンク</h3>
+    <ul>
+      <li><a href="visual-diff-loop/scripts/fetch-figma.js">fetch-figma.js のソースコード</a> — 経路2の実装</li>
+      <li><a href="visual-diff-loop/scripts/visual-diff.js">visual-diff.js のソースコード</a> — pixelmatch 比較</li>
+      <li><a href="visual-diff-loop/CLAUDE.md">CLAUDE.md</a> — Claude Code への指示書</li>
+    </ul>
+  </div>
+</section>
+
+<section id="review">
+  <div class="container">
+    <h2 class="section-title">③ 月次レビュー（月1回 / 案件3件溜まったら）</h2>
+    <p class="section-sub">蓄積した retrospective を集約して、ワークフローを改善する時間です。</p>
+
+    <h3 class="no-border">推奨タイミング</h3>
+    <ul>
+      <li>毎月末の最終金曜日</li>
+      <li>または、retrospectives/ に新しい振り返りが3件溜まった時点</li>
+      <li>所要時間：約30分（一人で実行 → 必要に応じてチーム共有）</li>
+    </ul>
+
+    <div class="steps">
+
+      <div class="step">
+        <h4>Step 1: ダッシュボードを生成して全体傾向を把握</h4>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>cd ~/ai-coding-workflow
+<span class="prompt">$ </span>node skills/workflow-improvement/scripts/dashboard.js \
+    --retrospectives ./retrospectives/ \
+    --out ./dashboard.html
+<span class="prompt">$ </span>open dashboard.html</pre>
+        <p>確認ポイント：</p>
+        <ul>
+          <li>再現率の推移は上向きか、停滞か</li>
+          <li>反復回数は減ってきているか</li>
+          <li>苦戦パターンのランキング上位は何か</li>
+        </ul>
+      </div>
+
+      <div class="step">
+        <h4>Step 2: ルール更新提案を生成</h4>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>node skills/workflow-improvement/scripts/propose-rule-updates.js \
+    --retrospectives ./retrospectives/ \
+    --rules ./skills/figma-structure-check/rules/check-rules.json \
+    --out ./rule-update-proposals/$(date +%Y%m).md</pre>
+        <p>生成された <code class="inline">rule-update-proposals/202605.md</code> を開いて、提案内容を確認します。</p>
+      </div>
+
+      <div class="step">
+        <h4>Step 3: 提案を検討してルール反映するかを判断</h4>
+        <p>提案された各項目について、以下のいずれかを選択：</p>
+        <ul>
+          <li><strong>採用</strong> — <code class="inline">skills/figma-structure-check/rules/check-rules.json</code> を直接編集して反映</li>
+          <li><strong>保留</strong> — 今回はパス、次回もう一度判断</li>
+          <li><strong>却下</strong> — このパターンは今後ルール化しない（理由を提案ファイルに追記）</li>
+        </ul>
+        <div class="callout danger">
+          <strong>必ず人がレビュー</strong>：AI 提案を盲信せず、必ず内容を読んで判断してから反映してください。誤った変更は全案件に影響します。
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Step 4: 変更をコミットしてチームに共有</h4>
+        <pre class="code"><button class="copy-btn">copy</button><span class="prompt">$ </span>git add skills/figma-structure-check/rules/check-rules.json rule-update-proposals/
+<span class="prompt">$ </span>git commit -m <span class="string">"rules: 2026/05 月次更新 - background-blur 閾値見直し他"</span>
+<span class="prompt">$ </span>git push</pre>
+        <p>Slack等で「ルールが更新されました」とチームに通知し、簡単な変更点サマリーを共有。</p>
+      </div>
+
+      <div class="step">
+        <h4>Step 5: コーダー側で対応すべきインサイト共有</h4>
+        <p>振り返りの <code class="inline">[CODER NOTE]</code> セクションから、ワークフロー外の改善ヒント（「セマンティックHTML要件を明示すべき」等）が出ていれば、社内コーディングルール Skill 側に反映を依頼。</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="troubleshooting" class="alt">
+  <div class="container">
+    <h2 class="section-title">トラブルシューティング</h2>
+    <p class="section-sub">よくあるエラーと対処法。詰まったらここを最初に確認してください。</p>
+
+    <details class="accordion" open>
+      <summary>FIGMA_TOKEN や FIGMA_FILE_KEY が認識されない</summary>
+      <div class="acc-body">
+        <p><code class="inline">echo $FIGMA_TOKEN</code> で値が出るか確認。空ならシェル設定ファイル（<code class="inline">~/.zshrc</code> など）に export 文があるか、source されているか確認。新しいターミナルを開き直すのも有効です。</p>
+        <pre class="code"><span class="prompt">$ </span>echo $FIGMA_TOKEN
+<span class="comment"># 何も出ないなら未設定</span>
+<span class="prompt">$ </span><span class="keyword">export</span> FIGMA_TOKEN=<span class="string">"figd_xxxxx"</span>
+<span class="prompt">$ </span>echo $FIGMA_TOKEN</pre>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>Figma API が 403 / 404 を返す</summary>
+      <div class="acc-body">
+        <p>主な原因は3つ：</p>
+        <ul>
+          <li>トークンの権限不足 — Figma設定でトークンの「File content」スコープを確認</li>
+          <li>ファイルキーが間違っている — URL の <code class="inline">/file/【ここ】/</code> 部分を再確認</li>
+          <li>ファイルへのアクセス権がない — Figmaファイルが共有されているか確認。デザイナーに依頼</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>Playwright のスクショと Figma 書き出しのサイズが違う</summary>
+      <div class="acc-body">
+        <p><code class="inline">scripts/render.js</code> の <code class="inline">deviceScaleFactor: 2</code> と、<code class="inline">fetch-figma.js</code> の <code class="inline">scale=2</code> が揃っているか確認。違うスケールで比較すると差分が大きく出ます。</p>
+        <p>また、Figma側のFrameサイズと <code class="inline">targets.json</code> の <code class="inline">viewports</code> の値が大きくズレているとはみ出しが発生します。</p>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>Visual Diff スコアが上がらない（90%前後で頭打ち）</summary>
+      <div class="acc-body">
+        <p>主な原因と対処：</p>
+        <ul>
+          <li><strong>フォント描画差</strong> — Figmaとブラウザのアンチエイリアスが原因。3%以下なら諦め、それ以上なら letter-spacing / font-feature-settings で吸収を試みる</li>
+          <li><strong>強いブラー</strong> — <code class="inline">backdrop-filter</code> はブラウザ差大。代替案を spec.md に「再現困難パターン」として追記</li>
+          <li><strong>レイアウト解釈差</strong> — Auto Layout の gap と CSS の gap の解釈が違うことがある。padding/margin ベースに置き換えると安定</li>
+          <li><strong>Figma側に問題</strong> — 構造チェック Skill を再実行。warning が大量に出ていれば、デザイナーに差し戻し</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>Claude Code が「完了」と言うのに、スコアが閾値未満</summary>
+      <div class="acc-body">
+        <p>CLAUDE.md が正しく読まれていない可能性。Claude Code 内で以下を実行：</p>
+        <pre class="code"><span class="prompt">&gt; </span>CLAUDE.md を再度読んで、未達ターゲットがないか確認してください</pre>
+        <p>それでも完了扱いするなら、上限反復回数（デフォルト5回）に達した可能性。<code class="inline">targets.json</code> の <code class="inline">maxIterations</code> を増やすか、該当ターゲットを再現困難パターンとして扱う方針に切り替えます。</p>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>retrospective.md の [AI が補完] が空のまま生成される</summary>
+      <div class="acc-body">
+        <p><code class="inline">generate-retrospective.js</code> はテンプレート埋めのみ行い、自然言語部分は Claude Code が後から書き加える設計です。CLAUDE.md に振り返り生成手順が記載されているか確認。手動で Claude Code に依頼するなら：</p>
+        <pre class="code"><span class="prompt">&gt; </span>retrospectives/202605-osaka-koukou.md を開き、[AI が補完] のセクションを埋めてください</pre>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>npm install が遅い / 失敗する</summary>
+      <div class="acc-body">
+        <p>社内プロキシ環境の場合、<code class="inline">npm config set registry</code> で社内ミラーを指定するか、<code class="inline">~/.npmrc</code> で proxy を設定。Playwright の Chromium DL は別途プロキシ設定が必要な場合があります。</p>
+        <pre class="code"><span class="keyword">export</span> HTTPS_PROXY=http://proxy.your-company:port
+<span class="keyword">export</span> HTTP_PROXY=http://proxy.your-company:port</pre>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>Figma MCP に繋がらない／ツールが表示されない</summary>
+      <div class="acc-body">
+        <p>確認すべき項目を順番に：</p>
+        <ol>
+          <li><strong>Figma Desktop App が起動しているか</strong> — ブラウザ版では MCP は動きません</li>
+          <li><strong>Dev Mode MCP Server が ON か</strong> — Figma Preferences で確認、トグルが ON になっているか</li>
+          <li><strong>ポート3845が使われていないか</strong> — <code class="inline">lsof -i :3845</code> で確認。他のプロセスが占有していたら停止</li>
+          <li><strong>Claude Code 側の MCP 設定</strong> — <code class="inline">claude mcp list</code> で figma が登録されているか確認</li>
+          <li><strong>プラン確認</strong> — Dev Mode は Professional プラン以上に含まれる</li>
+        </ol>
+        <p>それでも動かない場合は、<strong>MCP なしの degrade モード</strong>で運用できます。spec.md と references/ の画像だけで Claude Code はコーディングできます。再現率は若干落ちる可能性がありますが、ループは回ります。</p>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>Figma Desktop App を閉じたら Claude Code が止まった</summary>
+      <div class="acc-body">
+        <p>Dev Mode MCP Server は Figma Desktop App のプロセス内で動いているため、アプリを閉じると停止します。<strong>作業中は Figma を起動しっぱなしにしてください</strong>。</p>
+        <p>うっかり閉じてしまった場合は、Figma を再起動して Dev Mode MCP が ON のままになっていることを確認 → Claude Code 内で MCP の再接続を促すと復帰します。</p>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary>ダッシュボードが「集計対象 0 件」と表示される</summary>
+      <div class="acc-body">
+        <p><code class="inline">retrospectives/</code> ディレクトリに <code class="inline">.md</code> ファイルが存在し、それぞれに正しい frontmatter（<code class="inline">--- name: ... ---</code>形式）が付いているか確認。frontmatter が壊れているファイルは集計対象外になります。</p>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<section id="reference">
+  <div class="container">
+    <h2 class="section-title">リファレンス</h2>
+    <p class="section-sub">よく使うコマンドとファイル構成。ブックマークしておくと便利です。</p>
+
+    <h3 class="no-border">よく使うコマンド一覧</h3>
+    <table class="quickref">
+      <tr><th>用途</th><th>コマンド</th></tr>
+      <tr><td>構造チェック実行</td><td><code class="inline">node skills/figma-structure-check/scripts/check-figma.js --report</code></td></tr>
+      <tr><td>中間仕様生成</td><td><code class="inline">node skills/figma-to-spec/scripts/generate-spec.js --project "案件名" --out docs/spec.md</code></td></tr>
+      <tr><td>Figma正解画像取得</td><td><code class="inline">npm run fetch-figma</code></td></tr>
+      <tr><td>ローカルサーバー起動</td><td><code class="inline">npx serve src -p 3000</code></td></tr>
+      <tr><td>HTMLレンダリング</td><td><code class="inline">npm run render</code></td></tr>
+      <tr><td>差分計測</td><td><code class="inline">npm run diff</code></td></tr>
+      <tr><td>レポート閲覧</td><td><code class="inline">open report/index.html</code></td></tr>
+      <tr><td>一気通貫実行</td><td><code class="inline">npm run all</code></td></tr>
+      <tr><td>振り返り生成</td><td><code class="inline">node skills/workflow-improvement/scripts/generate-retrospective.js ...</code></td></tr>
+      <tr><td>月次ダッシュボード</td><td><code class="inline">node skills/workflow-improvement/scripts/dashboard.js</code></td></tr>
+      <tr><td>ルール更新提案</td><td><code class="inline">node skills/workflow-improvement/scripts/propose-rule-updates.js</code></td></tr>
+    </table>
+
+    <h3>案件ディレクトリの構造</h3>
+    <div class="files-tree">
+<span class="dir">案件ルート/</span>
+├─ <span class="file">CLAUDE.md</span>                          <span class="comment"># Claude Codeへの指示書（Visual Diff Loopから引き継ぎ）</span>
+├─ <span class="file">package.json</span>
+├─ <span class="dir">scripts/</span>                            <span class="comment"># 検証パイプ（fetch / render / diff）</span>
+│   └─ <span class="file">targets.json</span>                   <span class="comment"># 比較対象定義（Figma Node ID と URL の対応）</span>
+├─ <span class="dir">docs/</span>
+│   └─ <span class="file">spec.md</span>                        <span class="comment"># 中間仕様（[TODO] 埋め必須）</span>
+├─ <span class="dir">src/</span>                                <span class="comment"># 生成される静的HTML/CSS/JS（成果物）</span>
+├─ <span class="dir">references/</span>                         <span class="comment"># Figmaから取得した正解画像</span>
+├─ <span class="dir">renders/</span>                            <span class="comment"># Playwrightで取得した生成側スクショ</span>
+├─ <span class="dir">report/</span>                             <span class="comment"># 差分レポート（diff.json / index.html / diffs/）</span>
+│   ├─ <span class="file">diff.json</span>
+│   ├─ <span class="file">index.html</span>
+│   └─ <span class="file">structure-check.json</span>           <span class="comment"># 構造チェック結果（振り返り用）</span>
+└─ <span class="dir">retrospectives/</span>                     <span class="comment"># 振り返り（完了後にmaster repoへコピー）</span>
+    └─ <span class="file">202605-案件名.md</span>
+    </div>
+
+    <h3>中央リポジトリ（社内共通）の構造</h3>
+    <div class="files-tree">
+<span class="dir">ai-coding-workflow/</span>
+├─ <span class="file">README.md</span>                          <span class="comment"># セットアップ手順</span>
+├─ <span class="file">proposal.html</span>                      <span class="comment"># 社内提案資料</span>
+├─ <span class="file">manual.html</span>                        <span class="comment"># この手順書</span>
+├─ <span class="dir">visual-diff-loop/</span>                   <span class="comment"># 案件ベーステンプレート（cp -r で複製）</span>
+├─ <span class="dir">skills/</span>
+│   ├─ <span class="dir">figma-structure-check/</span>          <span class="comment"># Skill ①</span>
+│   ├─ <span class="dir">figma-to-spec/</span>                  <span class="comment"># Skill ②</span>
+│   └─ <span class="dir">workflow-improvement/</span>           <span class="comment"># Skill ③ 改善ループ</span>
+├─ <span class="dir">retrospectives/</span>                     <span class="comment"># 全案件の振り返り蓄積</span>
+│   ├─ <span class="file">202605-osaka-koukou.md</span>
+│   ├─ <span class="file">202605-iryo-lp.md</span>
+│   └─ ...
+├─ <span class="dir">rule-update-proposals/</span>              <span class="comment"># 月次ルール更新提案</span>
+│   └─ <span class="file">202605.md</span>
+└─ <span class="file">dashboard.html</span>                     <span class="comment"># 月次ダッシュボード（自動生成）</span>
+    </div>
+
+    <h3>関連資料</h3>
+    <ul>
+      <li><a href="proposal.html">社内提案資料（proposal.html）</a> — 全体設計と意義の説明</li>
+      <li><a href="skills/figma-structure-check/SKILL.md">figma-structure-check Skill 詳細</a></li>
+      <li><a href="skills/figma-to-spec/SKILL.md">figma-to-spec Skill 詳細</a></li>
+      <li><a href="skills/workflow-improvement/SKILL.md">workflow-improvement Skill 詳細</a></li>
+      <li><a href="visual-diff-loop/README.md">Visual Diff ループ README</a></li>
+    </ul>
+
+    <h3>困った時の連絡先</h3>
+    <p>本ワークフローに関する質問・改善提案は、社内Slackの <code class="inline">#ai-workflow</code> チャンネル、または管理担当（Web制作チーム）まで。</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2026 Web制作チーム — AIエージェント・ワークフロー手順書（コーダー向け）</p>
+    <p style="font-size:11px;">本書は社内利用専用です。Generated 2026.05</p>
+  </div>
+</footer>
+
+<script>
+  // ===== Phase pill switcher =====
+  document.querySelectorAll('.phase-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const phase = pill.dataset.phase;
+      document.querySelectorAll('.phase-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      document.querySelectorAll('#phase-content > p').forEach(p => p.style.display = 'none');
+      document.getElementById(phase + '-desc').style.display = 'block';
+    });
+  });
+
+  // ===== Checklist toggle =====
+  document.querySelectorAll('.checklist li').forEach(li => {
+    li.addEventListener('click', () => li.classList.toggle('checked'));
+  });
+
+  // ===== Copy buttons =====
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pre = btn.closest('pre');
+      // ボタン以外の textContent を取得
+      const clone = pre.cloneNode(true);
+      const cloneBtn = clone.querySelector('.copy-btn');
+      if (cloneBtn) cloneBtn.remove();
+      const text = clone.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = '✓ copied';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.textContent = 'copy';
+        }, 1500);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

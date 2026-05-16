@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIエージェント・ワークフロー提案 — ウェブ制作会社向け</title>
+<style>
+  :root {
+    --c-bg: #F7FAFC;
+    --c-card: #FFFFFF;
+    --c-border: #E2E8F0;
+    --c-text: #1A202C;
+    --c-text-sub: #4A5568;
+    --c-text-mute: #718096;
+    --c-primary: #2D3748;
+    --c-accent: #3182CE;
+    --c-accent-dark: #2C5282;
+    --c-highlight: #ED8936;
+    --c-success: #38A169;
+    --c-danger: #E53E3E;
+    --c-code-bg: #1A202C;
+    --c-code-text: #E2E8F0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.05);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ===== Navigation ===== */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--c-border);
+    z-index: 100;
+    padding: 12px 0;
+  }
+  nav.toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 13px;
+  }
+  nav.toc a {
+    color: var(--c-text-sub);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  nav.toc a:hover {
+    background: var(--c-bg);
+    color: var(--c-accent);
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #2D3748 0%, #1A365D 100%);
+    color: white;
+    padding: 80px 24px 100px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -100px;
+    top: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(237,137,54,0.15), transparent 70%);
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .eyebrow {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--c-highlight);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .hero h1 {
+    font-size: 42px;
+    line-height: 1.3;
+    margin: 0 0 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hero p.lead {
+    font-size: 18px;
+    color: #CBD5E0;
+    margin: 0 0 32px;
+    max-width: 700px;
+  }
+  .hero .meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #A0AEC0;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .hero .meta strong { color: white; }
+
+  /* ===== Sections ===== */
+  section {
+    padding: 64px 0;
+    border-bottom: 1px solid var(--c-border);
+  }
+  section.alt {
+    background: var(--c-card);
+  }
+  h2.section-title {
+    font-size: 28px;
+    margin: 0 0 8px;
+    color: var(--c-primary);
+    letter-spacing: -0.01em;
+  }
+  .section-sub {
+    color: var(--c-text-mute);
+    font-size: 15px;
+    margin: 0 0 40px;
+  }
+  h3 {
+    font-size: 19px;
+    color: var(--c-primary);
+    margin: 32px 0 12px;
+  }
+
+  /* ===== Summary cards ===== */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin: 32px 0;
+  }
+  .summary-card {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .summary-card .num {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--c-accent);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+  .summary-card .label {
+    font-size: 13px;
+    color: var(--c-text-mute);
+    font-weight: 600;
+  }
+  .summary-card .desc {
+    font-size: 14px;
+    color: var(--c-text-sub);
+    margin-top: 12px;
+  }
+
+  /* ===== Two column ===== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 720px) {
+    .two-col { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 30px; }
+  }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card.danger { border-left: 4px solid var(--c-danger); }
+  .card.warning { border-left: 4px solid var(--c-highlight); }
+  .card.success { border-left: 4px solid var(--c-success); }
+  .card.info { border-left: 4px solid var(--c-accent); }
+  .card h4 {
+    margin: 0 0 12px;
+    font-size: 16px;
+  }
+  .card p {
+    margin: 8px 0;
+    color: var(--c-text-sub);
+    font-size: 14px;
+  }
+
+  /* ===== Workflow Diagram ===== */
+  .diagram-wrap {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    padding: 32px;
+    box-shadow: var(--shadow-md);
+    margin: 32px 0;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* ===== Tabs ===== */
+  .tabs {
+    margin: 32px 0;
+  }
+  .tab-buttons {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--c-border);
+    margin-bottom: 0;
+    overflow-x: auto;
+  }
+  .tab-buttons button {
+    background: transparent;
+    border: none;
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--c-text-mute);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .tab-buttons button:hover {
+    color: var(--c-accent);
+  }
+  .tab-buttons button.active {
+    color: var(--c-accent);
+    border-bottom-color: var(--c-accent);
+  }
+  .tab-panel {
+    display: none;
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 32px;
+  }
+  .tab-panel.active { display: block; }
+  .tab-panel h3:first-child { margin-top: 0; }
+
+  /* ===== Code block ===== */
+  pre.code {
+    background: var(--c-code-bg);
+    color: var(--c-code-text);
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  code.inline {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 0.9em;
+    color: var(--c-accent-dark);
+  }
+
+  /* ===== Tables ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--c-border);
+  }
+  th {
+    background: var(--c-bg);
+    font-weight: 600;
+    color: var(--c-text-sub);
+    font-size: 13px;
+  }
+
+  /* ===== Roadmap ===== */
+  .roadmap {
+    position: relative;
+    padding-left: 32px;
+    margin: 24px 0;
+  }
+  .roadmap::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--c-border);
+  }
+  .roadmap-item {
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .roadmap-item::before {
+    content: "";
+    position: absolute;
+    left: -32px;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    background: var(--c-accent);
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--c-accent);
+  }
+  .roadmap-item h4 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: var(--c-primary);
+  }
+  .roadmap-item .when {
+    font-size: 12px;
+    color: var(--c-text-mute);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .roadmap-item p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--c-text-sub);
+  }
+
+  /* ===== Pill badges ===== */
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+  .pill.danger { background: #FED7D7; color: #C53030; }
+  .pill.warning { background: #FEEBC8; color: #C05621; }
+  .pill.success { background: #C6F6D5; color: #2F855A; }
+  .pill.info { background: #BEE3F8; color: #2C5282; }
+
+  /* ===== Effect comparison ===== */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .compare > div {
+    padding: 20px;
+    border-radius: var(--radius);
+  }
+  .compare .before {
+    background: #FFF5F5;
+    border: 1px solid #FED7D7;
+  }
+  .compare .after {
+    background: #F0FFF4;
+    border: 1px solid #C6F6D5;
+  }
+  .compare h5 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .compare .before h5 { color: #C53030; }
+  .compare .after h5 { color: #2F855A; }
+  .compare ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--c-text-sub); }
+  .compare li { margin-bottom: 6px; }
+  @media (max-width: 720px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+
+  /* ===== Files list ===== */
+  .files-list {
+    background: var(--c-code-bg);
+    color: var(--c-code-text);
+    padding: 20px 24px;
+    border-radius: 8px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    margin: 16px 0;
+  }
+  .files-list .dir { color: #63B3ED; }
+  .files-list .file { color: #FAF089; }
+  .files-list .comment { color: #718096; }
+
+  /* ===== Footer ===== */
+  footer {
+    padding: 48px 0;
+    background: var(--c-primary);
+    color: #A0AEC0;
+    text-align: center;
+    font-size: 13px;
+  }
+  footer p { margin: 4px 0; }
+
+  /* ===== Print ===== */
+  @media print {
+    nav.toc { display: none; }
+    .hero { background: var(--c-primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { page-break-inside: avoid; padding: 32px 0; }
+    .tab-panel { display: block !important; }
+    .tab-buttons { display: none; }
+    .tab-panel { border: 1px solid var(--c-border); border-radius: var(--radius); margin-bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc">
+  <div class="container">
+    <ul>
+      <li><a href="#summary">サマリー</a></li>
+      <li><a href="#understanding">現状理解</a></li>
+      <li><a href="#problems">課題</a></li>
+      <li><a href="#proposal">提案概要</a></li>
+      <li><a href="#components">詳細</a></li>
+      <li><a href="#improvement">改善ループ</a></li>
+      <li><a href="#effects">期待効果</a></li>
+      <li><a href="#roadmap">導入ロードマップ</a></li>
+      <li><a href="#next">次のアクション</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">Internal Proposal · 2026.05</div>
+    <h1>Figmaからの自動コーディングを<br>実現するAIエージェント・ワークフロー</h1>
+    <p class="lead">部署間連携の改善と、デザイン再現率95%以上のコーディング自動化を、3つの仕組みで実現する提案です。</p>
+    <div class="meta">
+      <div><strong>対象</strong> 制作部・デザイン部・営業部 / 経営層</div>
+      <div><strong>前提</strong> Figma移行中 / Claude Code利用環境あり</div>
+      <div><strong>主執筆</strong> Web制作チーム</div>
+    </div>
+  </div>
+</header>
+
+<section id="summary">
+  <div class="container">
+    <h2 class="section-title">エグゼクティブサマリー</h2>
+    <p class="section-sub">「だいたい合っているが100%ではない」を解消する、3つの仕組みの組み合わせです。</p>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="num">95%+</div>
+        <div class="label">デザイン再現率（目標）</div>
+        <div class="desc">Visual Diffループによる自己修正で達成。</div>
+      </div>
+      <div class="summary-card">
+        <div class="num">3+1</div>
+        <div class="label">構成要素</div>
+        <div class="desc">3つのコア仕組み（構造チェック・中間仕様生成・Visual Diffループ）と、改善ループSkill。</div>
+      </div>
+      <div class="summary-card">
+        <div class="num">4</div>
+        <div class="label">ハンドオフを構造化</div>
+        <div class="desc">デザイナー→ディレクター→フロント→バックの全工程に品質ゲート。</div>
+      </div>
+      <div class="summary-card">
+        <div class="num">WCAG AA</div>
+        <div class="label">アクセシビリティ準拠</div>
+        <div class="desc">学校・医療系案件で必須の要件を最初から組み込み。</div>
+      </div>
+    </div>
+
+    <h3>提案の核（一言で）</h3>
+    <p>「FigmaからAIに渡す前にデザインを<strong>整える仕組み</strong>」「<strong>渡せる形に変換する仕組み</strong>」「<strong>生成結果と正解を比較して自己修正する仕組み</strong>」の3点を同時に整備することで、再現率を構造的に押し上げます。</p>
+  </div>
+</section>
+
+<section id="understanding" class="alt">
+  <div class="container">
+    <h2 class="section-title">現状理解</h2>
+    <p class="section-sub">ヒアリングを通じて整理した、現在の前提条件です。</p>
+
+    <h3>会社プロフィール</h3>
+    <table>
+      <tr><th>項目</th><th>状態</th></tr>
+      <tr><td>規模</td><td>31〜100名</td></tr>
+      <tr><td>主な案件</td><td>コーポレートサイト / LP / 学校法人 / 医療系</td></tr>
+      <tr><td>職種構成</td><td>ディレクター・PM / デザイナー / フロントエンジニア / バックエンドエンジニア / 営業・マーケ・ライター</td></tr>
+      <tr><td>技術スタック</td><td>静的HTML/CSS/JS（フロント） → LaravelベースのWOW3社内CMS or WordPress（バック）</td></tr>
+      <tr><td>デザイン</td><td>Figma へ移行中</td></tr>
+      <tr><td>AI環境</td><td>Claude Code / ChatGPT / Claude 等、自由利用</td></tr>
+      <tr><td>既存資産</td><td>社内コーディングルールはSkill化済み</td></tr>
+    </table>
+
+    <h3>現在のワークフロー</h3>
+    <p>営業によるヒアリングと提案、要件定義、ワイヤー設計、デザイン、コーディング、CMS組み込み、テスト、公開、保守という標準的な工程で進んでいます。各部署内ではすでにAIツールが活用されています。</p>
+  </div>
+</section>
+
+<section id="problems">
+  <div class="container">
+    <h2 class="section-title">課題分析</h2>
+    <p class="section-sub">部署内のAI活用は進んでいますが、部署間連携で再現率と工数のロスが発生しています。</p>
+
+    <div class="two-col">
+      <div class="card danger">
+        <span class="pill danger">参考</span>
+        <h4>営業 → 制作チーム</h4>
+        <p>ヒアリング内容（顧客のニュアンスや背景）が制作側に伝わらない。受注時の見積と実作業の工数が乖離する。</p>
+        <p style="font-size:12px; color: var(--c-text-mute);">本提案では別途扱う想定。</p>
+      </div>
+      <div class="card danger">
+        <span class="pill danger">本提案の主題</span>
+        <h4>デザイン → エンジニア</h4>
+        <p>Figmaデザインを Claude Code に渡してコーディングする際に、<strong>「だいたい合っているが100%ではない」</strong>状態で生成が止まる。Figma側の作り方ルールが未整備のため、AIが構造を読み違える。</p>
+      </div>
+    </div>
+
+    <h3>「だいたい合っている」が止まらない3つの原因</h3>
+    <div class="summary-grid">
+      <div class="card">
+        <h4>1. Figma側</h4>
+        <p>Auto Layout未適用、Variables未使用、レイヤー名がデフォルトのまま等、AIが構造を解釈できないデザインが渡される。</p>
+      </div>
+      <div class="card">
+        <h4>2. 受け渡し側</h4>
+        <p>Figma MCPで取れる情報には限界がある。インタラクション、複雑な効果、画像のベクター情報などが劣化する。</p>
+      </div>
+      <div class="card">
+        <h4>3. 生成側</h4>
+        <p>AIには「正解と比較する目」がない。人が「ここが違う」と指摘するまで気づけず、再現率が頭打ち。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="proposal" class="alt">
+  <div class="container">
+    <h2 class="section-title">提案概要</h2>
+    <p class="section-sub">3つの仕組みを直列に配置することで、上記の3原因をそれぞれ潰します。</p>
+
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 920 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ワークフロー全体図">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3182CE"/>
+            <stop offset="1" stop-color="#2C5282"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ED8936"/>
+            <stop offset="1" stop-color="#C05621"/>
+          </linearGradient>
+          <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#38A169"/>
+            <stop offset="1" stop-color="#276749"/>
+          </linearGradient>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#4A5568"/>
+          </marker>
+        </defs>
+
+        <!-- Actors -->
+        <text x="80" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#1A202C">デザイナー</text>
+        <text x="320" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#1A202C">ディレクター</text>
+        <text x="600" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#1A202C">Claude Code</text>
+        <text x="850" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#1A202C">エンジニア</text>
+
+        <!-- Figma -->
+        <rect x="20" y="60" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+        <text x="80" y="85" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">Figma</text>
+        <text x="80" y="105" text-anchor="middle" font-size="11" fill="#718096">デザイン作成</text>
+
+        <!-- Skill 1 -->
+        <rect x="20" y="160" width="120" height="80" rx="8" fill="url(#g1)"/>
+        <text x="80" y="185" text-anchor="middle" font-size="12" font-weight="700" fill="white">① Skill</text>
+        <text x="80" y="205" text-anchor="middle" font-size="11" fill="white">structure-check</text>
+        <text x="80" y="225" text-anchor="middle" font-size="10" fill="#BEE3F8">構造を整える</text>
+
+        <!-- Spec -->
+        <rect x="260" y="60" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+        <text x="320" y="85" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">spec.md</text>
+        <text x="320" y="105" text-anchor="middle" font-size="11" fill="#718096">中間仕様</text>
+
+        <!-- Skill 2 -->
+        <rect x="260" y="160" width="120" height="80" rx="8" fill="url(#g2)"/>
+        <text x="320" y="185" text-anchor="middle" font-size="12" font-weight="700" fill="white">② Skill</text>
+        <text x="320" y="205" text-anchor="middle" font-size="11" fill="white">figma-to-spec</text>
+        <text x="320" y="225" text-anchor="middle" font-size="10" fill="#FEEBC8">仕様化する</text>
+
+        <!-- Visual Diff Loop -->
+        <rect x="500" y="60" width="200" height="180" rx="8" fill="url(#g3)"/>
+        <text x="600" y="90" text-anchor="middle" font-size="14" font-weight="700" fill="white">③ Visual Diff</text>
+        <text x="600" y="110" text-anchor="middle" font-size="12" font-weight="600" fill="white">Loop</text>
+        <text x="600" y="135" text-anchor="middle" font-size="10" fill="#C6F6D5">生成 → スクショ</text>
+        <text x="600" y="155" text-anchor="middle" font-size="10" fill="#C6F6D5">↓</text>
+        <text x="600" y="175" text-anchor="middle" font-size="10" fill="#C6F6D5">Figmaと比較</text>
+        <text x="600" y="195" text-anchor="middle" font-size="10" fill="#C6F6D5">↓</text>
+        <text x="600" y="215" text-anchor="middle" font-size="10" fill="#C6F6D5">自己修正 (max 5回)</text>
+
+        <!-- Static HTML -->
+        <rect x="780" y="60" width="120" height="60" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+        <text x="840" y="85" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">静的HTML</text>
+        <text x="840" y="105" text-anchor="middle" font-size="11" fill="#718096">再現率 95%+</text>
+
+        <!-- CMS -->
+        <rect x="780" y="160" width="120" height="80" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+        <text x="840" y="185" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">CMS組込</text>
+        <text x="840" y="205" text-anchor="middle" font-size="11" fill="#718096">WOW3</text>
+        <text x="840" y="220" text-anchor="middle" font-size="11" fill="#718096">/ WordPress</text>
+
+        <!-- Arrows -->
+        <line x1="80" y1="120" x2="80" y2="155" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="140" y1="200" x2="255" y2="200" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="320" y1="160" x2="320" y2="125" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="380" y1="90" x2="495" y2="90" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="380" y1="200" x2="495" y2="200" stroke="#4A5568" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+        <line x1="700" y1="90" x2="775" y2="90" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="840" y1="120" x2="840" y2="155" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Labels -->
+        <text x="200" y="195" text-anchor="middle" font-size="10" fill="#4A5568">PASS時のみ</text>
+        <text x="440" y="80" text-anchor="middle" font-size="10" fill="#4A5568">仕様渡し</text>
+        <text x="440" y="195" text-anchor="middle" font-size="10" fill="#4A5568">MCP接続</text>
+        <text x="740" y="80" text-anchor="middle" font-size="10" fill="#4A5568">出力</text>
+        <text x="870" y="145" text-anchor="middle" font-size="10" fill="#4A5568">引き継ぎ</text>
+
+        <!-- Quality gates label -->
+        <rect x="20" y="280" width="880" height="100" rx="8" fill="#F7FAFC" stroke="#E2E8F0"/>
+        <text x="460" y="305" text-anchor="middle" font-size="13" font-weight="700" fill="#1A202C">3つの品質ゲートが連携</text>
+        <text x="80" y="335" text-anchor="middle" font-size="11" fill="#4A5568">① Figma構造の妥当性</text>
+        <text x="80" y="355" text-anchor="middle" font-size="10" fill="#718096">エラー0までセルフチェック</text>
+        <text x="460" y="335" text-anchor="middle" font-size="11" fill="#4A5568">② 中間仕様の網羅性</text>
+        <text x="460" y="355" text-anchor="middle" font-size="10" fill="#718096">[TODO]がゼロになるまで補完</text>
+        <text x="780" y="335" text-anchor="middle" font-size="11" fill="#4A5568">③ 生成結果の再現率</text>
+        <text x="780" y="355" text-anchor="middle" font-size="10" fill="#718096">閾値95%以上で完了判定</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="components">
+  <div class="container">
+    <h2 class="section-title">3つの構成要素 — 詳細</h2>
+    <p class="section-sub">各仕組みの目的、入出力、社内での使い方をタブで切り替えて確認できます。</p>
+
+    <div class="tabs">
+      <div class="tab-buttons" role="tablist">
+        <button class="active" data-tab="t1" type="button">① 構造チェック Skill</button>
+        <button data-tab="t2" type="button">② 中間仕様生成 Skill</button>
+        <button data-tab="t3" type="button">③ Visual Diffループ</button>
+      </div>
+
+      <div class="tab-panel active" id="t1">
+        <h3>figma-structure-check</h3>
+        <p><strong>目的</strong>：Figmaが「AIに渡せる状態」かを機械的にチェックし、デザイナーに修正リストを返す。</p>
+        <p><strong>使う人</strong>：デザイナー（セルフチェック）／ディレクター（承認ゲート）。</p>
+
+        <h4 style="margin-top:24px;">チェック項目</h4>
+        <ul>
+          <li>Auto Layout の使用（FRAMEがすべてAuto Layout になっているか）</li>
+          <li>Variables（デザイントークン）にバインドされた色・タイポ・spacing</li>
+          <li>繰り返し要素のComponent化</li>
+          <li>レイヤー命名規約（デフォルト名禁止、kebab-case）</li>
+          <li>レスポンシブFrame（PC/SP両方）の存在</li>
+          <li>画像書き出しマーカー <code class="inline">@img-</code></li>
+          <li>CMS可変領域マーカー <code class="inline">@cms-</code>（案件ごとに有効化）</li>
+          <li>アクセシビリティ alt 情報</li>
+          <li>再現困難パターン（強いブラー、特殊blend-mode）</li>
+        </ul>
+
+        <h4 style="margin-top:24px;">出力サンプル</h4>
+        <pre class="code">$ FIGMA_FILE_KEY=xxx node scripts/check-figma.js --report
+
+Summary: 8 errors, 23 warnings, 0 infos (totalNodes=247)
+FAILED ✗
+
+→ 各違反はMarkdownレポートとして出力され、Figma上の該当箇所への直接リンク付き。</pre>
+
+        <h4 style="margin-top:24px;">設計判断</h4>
+        <p>ルール定義はJSONで外出し。社内事情で閾値や対象を変えられるよう設計しています。Auto Layout の例外条件、許容する色のホワイトリスト、再現困難判定の閾値も <code class="inline">rules/check-rules.json</code> だけで調整可能です。</p>
+      </div>
+
+      <div class="tab-panel" id="t2">
+        <h3>figma-to-spec</h3>
+        <p><strong>目的</strong>：Figmaから中間仕様 <code class="inline">spec.md</code> の叩き台を自動生成する。Phase 1の主要コンポーネント。</p>
+        <p><strong>使う人</strong>：ディレクター（叩き台を作って、TODOを埋める）。</p>
+
+        <h4 style="margin-top:24px;">自動抽出される情報</h4>
+        <ul>
+          <li>デザイントークン（Variables → CSS Custom Properties候補）</li>
+          <li>ページ・セクション構成（Frame ツリーから派生）</li>
+          <li>レスポンシブ構成（PC/SP/Tablet Frame の検出）</li>
+          <li>CMS可変領域（<code class="inline">@cms-</code> マーカー）と入力タイプの推定</li>
+          <li>画像書き出し対象リスト（<code class="inline">@img-</code> マーカー）</li>
+          <li>アクセシビリティ alt 候補</li>
+          <li>再現困難パターン警告</li>
+        </ul>
+
+        <h4 style="margin-top:24px;">人が補完する情報（<code class="inline">[TODO]</code>マーカー）</h4>
+        <ul>
+          <li>顧客名、業種、ターゲットユーザー</li>
+          <li>業界制約（薬機法、教育委員会、個人情報など）</li>
+          <li>検収基準（再現率閾値、Lighthouseスコア）</li>
+          <li>インタラクション仕様</li>
+          <li>再現困難パターン検出時の対応方針</li>
+        </ul>
+
+        <h4 style="margin-top:24px;">設計判断</h4>
+        <p>「完全自動」を目指さない。Figmaから取れない情報（顧客背景・業界制約・検収基準）は人が判断すべきもの。このSkillは <strong>「機械的に取れるものは取り尽くす、判断は人に残す」</strong> 二段構えで、ディレクターの作業を半分以下に減らします。</p>
+      </div>
+
+      <div class="tab-panel" id="t3">
+        <h3>Visual Diff Loop</h3>
+        <p><strong>目的</strong>：Claude Codeが生成したHTMLと、Figmaの正解画像をピクセル単位で比較し、再現率が閾値を超えるまで自己修正させる。</p>
+        <p><strong>使う人</strong>：Claude Code 自身（自走）／フロントエンジニア（最終確認）。</p>
+
+        <h4 style="margin-top:24px;">ループの仕組み</h4>
+        <ol>
+          <li>Figmaから正解画像を書き出し（<code class="inline">fetch-figma.js</code>）</li>
+          <li>生成HTMLをPlaywrightで複数解像度スクショ（<code class="inline">render.js</code>）</li>
+          <li>pixelmatchでピクセル単位比較（<code class="inline">visual-diff.js</code>）</li>
+          <li>JSON＋HTMLレポート生成（差分は赤色で可視化）</li>
+          <li>閾値未満なら、Claude Codeが差分画像を読んで該当部分のCSS/HTMLを修正</li>
+          <li>再度比較。閾値を超えるか、上限5回まで反復</li>
+        </ol>
+
+        <h4 style="margin-top:24px;">閾値設計</h4>
+        <table>
+          <tr><th>領域</th><th>標準閾値</th><th>備考</th></tr>
+          <tr><td>全体</td><td>95%</td><td>フォントのアンチエイリアス差で1-3%は不可避</td></tr>
+          <tr><td>重要領域（CTA等）</td><td>97%</td><td>個別に厳しく設定可能</td></tr>
+          <tr><td>装飾領域</td><td>92%</td><td>必要に応じて緩める</td></tr>
+        </table>
+
+        <h4 style="margin-top:24px;">なぜこれが効くか</h4>
+        <p>従来「人が見て直す」をAIループに組み込むことで、再現率を構造的に上げます。AIに「正解と比較する目」を外付けで与える仕組みです。再現率95%以上が達成できないターゲットは、そもそも上流（Figma側）に問題があるサインなので、構造チェック Skill に立ち戻る判断材料にもなります。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="improvement" class="alt">
+  <div class="container">
+    <h2 class="section-title">改善ループ — 使うほど賢くなる仕組み</h2>
+    <p class="section-sub">一度きりの設計で終わらせず、案件をこなすたびに精度が上がるサイクルを組み込みます。</p>
+
+    <h3>なぜこれが必要か</h3>
+    <p>3つのコア仕組み（構造チェック・中間仕様生成・Visual Diffループ）を導入しても、現場で見つかる新しいパターンを反映しないと、ルールがやがて陳腐化します。「気づいた人がたまにメンテする」では続きません。<strong>AIに振り返りを書かせ、その蓄積からルール更新を提案させる仕組み</strong>を最初から組み込むことで、ワークフロー自体が学習する状態を作ります。</p>
+
+    <h3>3層のフィードバック設計</h3>
+    <div class="summary-grid">
+      <div class="card info">
+        <span class="pill info">Layer 1</span>
+        <h4>振り返りの自動生成</h4>
+        <p>Visual Diff ループ完了直後、Claude Code が <code class="inline">retrospective.md</code> の下書きを自動生成。再現率、反復回数、苦戦パターンを構造化記録。</p>
+        <p style="font-size:12px;">担当: Claude Code（自動） → コーダー（5-10分の補完）</p>
+      </div>
+      <div class="card info">
+        <span class="pill info">Layer 2</span>
+        <h4>ルール更新提案</h4>
+        <p>蓄積された retrospective を月次集計し、頻出する苦戦パターンを抽出。<code class="inline">check-rules.json</code> への変更案を Markdown で生成。</p>
+        <p style="font-size:12px;">担当: AI（自動） → 管理者が承認</p>
+      </div>
+      <div class="card info">
+        <span class="pill info">Layer 3</span>
+        <h4>ダッシュボード可視化</h4>
+        <p>案件横断のメトリクスを HTML ダッシュボードで常時可視化。再現率の推移、反復回数の分布、頻出パターンランキングが一目で分かる。</p>
+        <p style="font-size:12px;">担当: 全社員が閲覧</p>
+      </div>
+    </div>
+
+    <h3>ループの流れ</h3>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 920 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="改善ループ図">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#4A5568"/>
+          </marker>
+          <linearGradient id="cyc1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3182CE"/><stop offset="1" stop-color="#2C5282"/>
+          </linearGradient>
+          <linearGradient id="cyc2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ED8936"/><stop offset="1" stop-color="#C05621"/>
+          </linearGradient>
+          <linearGradient id="cyc3" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#38A169"/><stop offset="1" stop-color="#276749"/>
+          </linearGradient>
+        </defs>
+
+        <!-- 案件1 -->
+        <rect x="40" y="40" width="200" height="60" rx="8" fill="url(#cyc1)"/>
+        <text x="140" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="white">案件A</text>
+        <text x="140" y="85" text-anchor="middle" font-size="11" fill="#BEE3F8">Visual Diff Loop 完了</text>
+
+        <!-- retrospective A -->
+        <rect x="40" y="140" width="200" height="60" rx="8" fill="white" stroke="#3182CE" stroke-width="2"/>
+        <text x="140" y="165" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">retrospective_A.md</text>
+        <text x="140" y="183" text-anchor="middle" font-size="10" fill="#718096">AI生成 + コーダー補完</text>
+
+        <line x1="140" y1="100" x2="140" y2="135" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+
+        <!-- 案件B -->
+        <rect x="280" y="40" width="200" height="60" rx="8" fill="url(#cyc1)"/>
+        <text x="380" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="white">案件B</text>
+        <text x="380" y="85" text-anchor="middle" font-size="11" fill="#BEE3F8">Visual Diff Loop 完了</text>
+
+        <rect x="280" y="140" width="200" height="60" rx="8" fill="white" stroke="#3182CE" stroke-width="2"/>
+        <text x="380" y="165" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">retrospective_B.md</text>
+        <text x="380" y="183" text-anchor="middle" font-size="10" fill="#718096">AI生成 + コーダー補完</text>
+
+        <line x1="380" y1="100" x2="380" y2="135" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+
+        <!-- 案件C... -->
+        <rect x="520" y="40" width="200" height="60" rx="8" fill="url(#cyc1)"/>
+        <text x="620" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="white">案件C ...</text>
+        <text x="620" y="85" text-anchor="middle" font-size="11" fill="#BEE3F8">Visual Diff Loop 完了</text>
+
+        <rect x="520" y="140" width="200" height="60" rx="8" fill="white" stroke="#3182CE" stroke-width="2"/>
+        <text x="620" y="165" text-anchor="middle" font-size="13" font-weight="600" fill="#1A202C">retrospective_C.md</text>
+        <text x="620" y="183" text-anchor="middle" font-size="10" fill="#718096">AI生成 + コーダー補完</text>
+
+        <line x1="620" y1="100" x2="620" y2="135" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+
+        <!-- 蓄積層 -->
+        <rect x="40" y="240" width="680" height="50" rx="8" fill="#F7FAFC" stroke="#CBD5E0" stroke-dasharray="6,3"/>
+        <text x="380" y="270" text-anchor="middle" font-size="13" font-weight="600" fill="#4A5568">retrospectives/ ディレクトリに蓄積</text>
+
+        <line x1="140" y1="200" x2="140" y2="235" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+        <line x1="380" y1="200" x2="380" y2="235" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+        <line x1="620" y1="200" x2="620" y2="235" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+
+        <!-- 出力2方向 -->
+        <rect x="60" y="320" width="280" height="44" rx="8" fill="url(#cyc2)"/>
+        <text x="200" y="345" text-anchor="middle" font-size="12" font-weight="700" fill="white">月次: ルール更新提案</text>
+        <text x="200" y="358" text-anchor="middle" font-size="10" fill="#FEEBC8">→ 人が承認 → check-rules.json 更新</text>
+
+        <rect x="420" y="320" width="280" height="44" rx="8" fill="url(#cyc3)"/>
+        <text x="560" y="345" text-anchor="middle" font-size="12" font-weight="700" fill="white">常時: ダッシュボード可視化</text>
+        <text x="560" y="358" text-anchor="middle" font-size="10" fill="#C6F6D5">→ チーム全員が閲覧可能</text>
+
+        <line x1="280" y1="290" x2="200" y2="315" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+        <line x1="480" y1="290" x2="560" y2="315" stroke="#4A5568" stroke-width="2" marker-end="url(#arrow2)"/>
+
+        <!-- ループ矢印（提案→ルール更新→次案件へ反映） -->
+        <path d="M 200 364 Q 200 390 50 390 Q 20 390 20 70 Q 20 40 60 40"
+              fill="none" stroke="#ED8936" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow2)"/>
+        <text x="20" y="220" text-anchor="middle" font-size="10" fill="#C05621" transform="rotate(-90, 20, 220)">フィードバックで次案件の精度向上</text>
+      </svg>
+    </div>
+
+    <h3>振り返りに何が記録されるか</h3>
+    <p>各案件の <code class="inline">retrospective.md</code> には、機械的に集約可能な frontmatter として「最終再現率」「反復回数」「業界」「CMS」「苦戦パターンのタグ」が記録されます。自由記述部分には「うまく行ったこと」「苦戦したこと」「教訓」「ルール改善提案」が AI とコーダーの協働で書かれます。さらにコーダー専用の追記欄には「AI が捉えきれない問題」「再現率は出たが本質的に正しくない箇所」「デザイナーへの改善要望」を記録します。</p>
+
+    <h3>例：3案件後にAIが提案する改善</h3>
+    <pre class="code"># ルール更新提案 — 2026-05-31
+
+## 集計サマリー
+- 対象案件数: 3
+- 平均再現率: 95.7%
+- 合格率: 100%
+
+## 頻出する苦戦パターン
+| パターン | 件数 | 既存ルールでカバー |
+|---|---|---|
+| `background-blur-strong` | 2 | ✓ あり |
+| `fontWeight-rendering`   | 2 | ✗ なし（要対応） |
+| `vertical-rhythm-gap`    | 1 | ✓ あり |
+
+## ルール変更提案
+
+### `hard-to-reproduce`
+- 変更: BACKGROUND_BLUR の閾値を radius>20 から radius>15 に下げる
+- 理由: 2件で背景ブラーが苦戦パターン化。早期検出が必要。
+
+### (新規) `font-weight-restriction`
+- 変更: 新ルール追加
+- 理由: フォントウェイト描画差が2件で発生。
+  使用可能なウェイトを 400/700 に限定するルールが必要。</pre>
+
+    <h3>運用ルール（重要）</h3>
+    <ul>
+      <li><strong>自動承認はしない</strong>：AIの提案を直接 <code class="inline">check-rules.json</code> に反映させると誤った変更が混入する。必ず人のレビューを経由。</li>
+      <li><strong>個人評価には使わない</strong>：チームの改善が目的。コーダー個人の優劣を測る指標として運用しない。</li>
+      <li><strong>顧客情報は書かない</strong>：retrospective には案件名・業界以上の機密情報を書かない。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="effects">
+  <div class="container">
+    <h2 class="section-title">期待される効果</h2>
+    <p class="section-sub">導入前後で変わること、変わらないこと。</p>
+
+    <div class="compare">
+      <div class="before">
+        <h5>導入前</h5>
+        <ul>
+          <li>デザイナーがFigmaを作る → コーダーが受け取り、Figmaの不備に都度気づく</li>
+          <li>Claude Codeに渡しても「だいたい合っている」状態で止まる</li>
+          <li>人が目視して差分を指摘 → 修正依頼 → 再生成 のループに人が常に介在</li>
+          <li>再現率は案件・コーダーによって安定しない</li>
+          <li>CMS可変領域の認識が口頭・チャットで揺らぐ</li>
+        </ul>
+      </div>
+      <div class="after">
+        <h5>導入後</h5>
+        <ul>
+          <li>デザイナーが納品前にセルフチェック → エラー0で渡せる</li>
+          <li>中間仕様(spec.md)で意図を構造化 → AIの解釈ぶれを抑止</li>
+          <li>Visual Diff ループで自己修正 → 人は最終確認のみ</li>
+          <li>再現率95%以上が標準（重要領域は97%）</li>
+          <li>CMS可変領域がspec.md上で明文化 → バックエンジニアもAIで組込</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px;">定量目標（試運用後3ヶ月で達成したい）</h3>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="num">▲30%</div>
+        <div class="label">コーディング工数</div>
+        <div class="desc">同等案件比。一発生成+自己修正による削減。</div>
+      </div>
+      <div class="summary-card">
+        <div class="num">95%+</div>
+        <div class="label">再現率の安定化</div>
+        <div class="desc">案件・担当者を問わず一定。</div>
+      </div>
+      <div class="summary-card">
+        <div class="num">▲50%</div>
+        <div class="label">手戻り回数</div>
+        <div class="desc">デザイナー←→コーダー間のチャット往復。</div>
+      </div>
+      <div class="summary-card">
+        <div class="num">100%</div>
+        <div class="label">WCAG AA 達成率</div>
+        <div class="desc">学校・医療系で必須の基準を全案件で。</div>
+      </div>
+    </div>
+
+    <h3>変わらないこと（誤解の予防）</h3>
+    <p>このワークフローは「人を置き換える」ものではありません。デザイナーの創造性、ディレクターの判断、エンジニアの仕上げの目は引き続き必須です。変わるのは <strong>「人が繰り返し型作業に費やす時間」</strong> であって、判断・創造・最終責任は人が担います。</p>
+  </div>
+</section>
+
+<section id="roadmap" class="alt">
+  <div class="container">
+    <h2 class="section-title">導入ロードマップ</h2>
+    <p class="section-sub">小さく試して、効果検証してから広げる3ステップです。</p>
+
+    <div class="roadmap">
+      <div class="roadmap-item">
+        <div class="when">Step 1 — Week 1〜2</div>
+        <h4>パイロット案件で試運用</h4>
+        <p>進行中または直近着手予定の <strong>LP1案件 + コーポレートサイト1案件</strong> を選定。デザインからコーディング完了までを新フローで実行。</p>
+        <p style="font-size:13px; color: var(--c-text-mute);">必要なもの: Figma個人アクセストークン、社内検証用GitHubリポジトリ、Claude Code 環境。</p>
+      </div>
+      <div class="roadmap-item">
+        <div class="when">Step 2 — Week 3〜4</div>
+        <h4>ルール調整と社内合意</h4>
+        <p>試運用での違反検出傾向を見て <code class="inline">check-rules.json</code> を調整。デザイナー・コーダー双方の声を反映してルール完成度を上げる。社内コーディング規約Skillとの境界を整理。</p>
+      </div>
+      <div class="roadmap-item">
+        <div class="when">Step 3 — Month 2〜3</div>
+        <h4>全案件への段階展開</h4>
+        <p>まずはLP案件全件 → コーポレートサイト → 学校・医療系の順で展開。各案件で再現率・工数のメトリクスを蓄積。</p>
+      </div>
+      <div class="roadmap-item">
+        <div class="when">Step 4 — Month 4〜</div>
+        <h4>営業→制作 連携の改善（次フェーズ）</h4>
+        <p>本提案のスコープ外だが、ヒアリング内容の構造化Skill、見積精度向上の仕組みも続けて整備したい。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="next">
+  <div class="container">
+    <h2 class="section-title">次のアクション</h2>
+    <p class="section-sub">この提案を進めるために、決めたい・揃えたいこと。</p>
+
+    <div class="two-col">
+      <div class="card info">
+        <h4>意思決定</h4>
+        <p>① パイロット案件の選定<br>② 試運用のレビュー会の日程確保（Week 2 終了時）<br>③ デザイナー側のFigma作り方ルール改訂への合意</p>
+      </div>
+      <div class="card info">
+        <h4>準備物</h4>
+        <p>① Figma個人アクセストークン<br>② パイロット案件のFigmaファイルキー<br>③ 検証用Gitリポジトリ<br>④ Visual Diffループ実行用のNode.js 環境</p>
+      </div>
+    </div>
+
+    <h3>作成済みのファイル一覧</h3>
+    <div class="files-list">
+<span class="dir">ウェブ制作会社のAIエージェントを使った最適なワークフローを考えたい/</span>
+├─ <span class="file">proposal.html</span>                                <span class="comment"># この資料</span>
+├─ <span class="dir">visual-diff-loop/</span>                           <span class="comment"># Visual Diffループ雛形</span>
+│   ├─ <span class="file">README.md</span>
+│   ├─ <span class="file">CLAUDE.md</span>                              <span class="comment"># Claude Codeへの作業指示書</span>
+│   ├─ <span class="file">package.json</span>
+│   ├─ scripts/
+│   │   ├─ <span class="file">fetch-figma.js</span>                     <span class="comment"># Figma API でリファレンス取得</span>
+│   │   ├─ <span class="file">render.js</span>                          <span class="comment"># Playwrightでスクショ</span>
+│   │   ├─ <span class="file">visual-diff.js</span>                     <span class="comment"># pixelmatchで比較</span>
+│   │   └─ <span class="file">targets.json</span>                       <span class="comment"># 比較対象定義</span>
+│   └─ docs/
+│       └─ <span class="file">spec.md.template</span>
+└─ <span class="dir">skills/</span>
+    ├─ <span class="dir">figma-structure-check/</span>                <span class="comment"># Skill ①</span>
+    │   ├─ <span class="file">SKILL.md</span>
+    │   ├─ rules/<span class="file">check-rules.json</span>
+    │   ├─ scripts/<span class="file">check-figma.js</span>
+    │   └─ examples/<span class="file">report-sample.md</span>
+    ├─ <span class="dir">figma-to-spec/</span>                        <span class="comment"># Skill ②</span>
+    │   ├─ <span class="file">SKILL.md</span>
+    │   ├─ templates/<span class="file">spec-template.md</span>
+    │   ├─ scripts/<span class="file">generate-spec.js</span>
+    │   └─ examples/<span class="file">generated-spec.example.md</span>
+    └─ <span class="dir">workflow-improvement/</span>                  <span class="comment"># Skill ③ 改善ループ</span>
+        ├─ <span class="file">SKILL.md</span>
+        ├─ templates/<span class="file">retrospective.md.template</span>
+        ├─ scripts/<span class="file">generate-retrospective.js</span>
+        ├─ scripts/<span class="file">propose-rule-updates.js</span>
+        ├─ scripts/<span class="file">dashboard.js</span>
+        └─ examples/<span class="file">sample-retrospective.md</span>
+    </div>
+
+    <p style="margin-top:24px;">各ファイルは雛形として配置済みです。試運用を始める際は、これらを社内Gitに取り込み、案件固有の調整を加えてください。</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2026 Web制作チーム — AIエージェント・ワークフロー提案</p>
+    <p style="font-size:11px;">本資料は社内検討用の提案資料です。Generated 2026.05</p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.tab-buttons button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

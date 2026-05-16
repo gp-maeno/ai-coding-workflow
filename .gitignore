@@ -1,0 +1,27 @@
+# 依存
+node_modules/
+
+# visual-diff-loop の自動生成物
+visual-diff-loop/references/
+visual-diff-loop/renders/
+visual-diff-loop/report/
+visual-diff-loop/src/
+
+# retrospective（案件ごとの自動生成）
+retrospectives/
+
+# ログ・OS
+*.log
+.DS_Store
+
+# エディタ
+.vscode/
+.idea/
+
+# 個人設定（Claude Code）
+CLAUDE.local.md
+.claude/settings.local.json
+
+# 環境変数
+.env
+.env.local

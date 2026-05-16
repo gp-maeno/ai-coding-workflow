@@ -1,0 +1,79 @@
+---
+project: "{{PROJECT_NAME}}"
+date: "{{DATE}}"
+industry: "{{INDUSTRY}}"
+cms: "{{CMS}}"
+finalScore: {{FINAL_SCORE}}
+passThreshold: {{PASS_THRESHOLD}}
+iterations: {{ITERATIONS}}
+maxIterations: {{MAX_ITERATIONS}}
+passed: {{PASSED}}
+durationMin: {{DURATION_MIN}}
+structureCheckErrors: {{STRUCTURE_CHECK_ERRORS}}
+structureCheckWarnings: {{STRUCTURE_CHECK_WARNINGS}}
+strugglingPatterns:
+{{STRUGGLING_PATTERNS_YAML}}
+---
+
+# 振り返り — {{PROJECT_NAME}}
+
+<!-- 自動生成 by workflow-improvement Skill / generate-retrospective.js -->
+<!-- 生成日時: {{GENERATED_AT}} -->
+
+## 概要
+
+{{OVERVIEW}}
+
+## メトリクス（自動）
+
+| 項目 | 値 |
+|---|---|
+| 最終再現率 | {{FINAL_SCORE_PERCENT}}% |
+| 合格閾値 | {{PASS_THRESHOLD_PERCENT}}% |
+| 判定 | {{VERDICT}} |
+| 反復回数 | {{ITERATIONS}} / {{MAX_ITERATIONS}} |
+| 構造チェック違反（着手前） | エラー {{STRUCTURE_CHECK_ERRORS}} / 警告 {{STRUCTURE_CHECK_WARNINGS}} |
+| 所要時間 | {{DURATION_MIN}} 分 |
+
+## うまく行ったこと
+
+{{WHAT_WORKED_WELL}}
+
+## 苦戦したこと
+
+{{WHAT_STRUGGLED}}
+
+### 差分が大きかったターゲット（自動抽出）
+
+| ターゲット | viewport | スコア | 推定原因 |
+|---|---|---|---|
+{{STRUGGLING_TARGETS_TABLE}}
+
+## 教訓と次回への申し送り
+
+{{LESSONS_LEARNED}}
+
+## ルール改善提案（AIが気づいた点）
+
+{{RULE_IMPROVEMENT_HINTS}}
+
+---
+
+## [CODER NOTE] コーダーからの追記
+
+このセクションをコーダーが埋めてください（5〜10分程度）。AI には見えないニュアンスや、Figma側の問題、デザイナーとのやり取りで分かったことなどを書きます。
+
+### この案件で実際に苦労したこと（AI が捉えきれていない問題）
+[CODER NOTE]
+
+### 「再現率は出たが本質的には正しくない」箇所
+[CODER NOTE] 例: アクセシビリティ的に問題、意味的に不適切なマークアップ、保守性が低い等
+
+### デザイナーへ伝えたい改善要望
+[CODER NOTE]
+
+### このワークフロー（CLAUDE.md、Skill群）への改善要望
+[CODER NOTE]
+
+### 次回類似案件で再利用したいコンポーネント・テクニック
+[CODER NOTE]
