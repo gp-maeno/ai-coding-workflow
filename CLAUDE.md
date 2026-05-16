@@ -17,12 +17,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 作業の基本フロー
 
-新規案件を回す全体像は以下（提案マニュアルの中核）。各段階は対応するSkill/プロジェクトに従う:
+ワークフロー全体図と各フェーズ詳細は **`manual.html` の `#overview` セクション**（「ワークフロー全体図」）に一枚絵で書かれている。重複を避けるため、フローを参照したいときはまずそちらを開くこと。提案ストーリーは `proposal.html` 側にある。
 
-1. `figma-structure-check` でデザイン構造をゲート
-2. `figma-to-spec` で `spec.md` を生成
-3. `visual-diff-loop` で再現率95%以上まで自己修正ループ
-4. `workflow-improvement` で retrospective を生成し、`check-rules.json` 更新案にフィードバック
+概略のみ:
+1. `figma-structure-check` → 2. `figma-to-spec` → 3. `visual-diff-loop` → 4. `workflow-improvement`
+
+## 変更時の必須チェック：提案資料の同期
+
+`proposal.html` と `manual.html` は **コードと並ぶ「成果物」**。以下の種類の変更を入れたときは、これら2ファイルの該当箇所が陳腐化していないか必ず確認し、必要なら同時に修正する:
+
+- Skill の追加・削除・責務変更（`skills/*/SKILL.md` の `description` 変更を含む）
+- ワークフローのフェーズ順序・コマンド・閾値の変更
+- `visual-diff-loop/` のスクリプト追加・コマンド名変更（`package.json` の `scripts`）
+- `check-rules.json` の構造変更
+- 案件ディレクトリ構造や中央リポジトリ構造の変更
+
+確認手順：変更後に `manual.html` を全文検索し、変更したコマンド名・Skill名・ファイルパスがヒットしたら、その箇所の説明が新しい挙動と一致するかをチェック。`proposal.html` は提案上の位置づけが変わっていないかを目視確認。
+
+不要な修正は入れないが、**「コード変更したのに資料は古いまま」を放置しない**。
 
 ## コーディング規約
 

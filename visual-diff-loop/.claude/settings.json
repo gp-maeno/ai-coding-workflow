@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "visual-diff-loop: render + diff を実行中...",
+            "timeout": 120,
+            "command": "f=$(jq -r '.tool_input.file_path // \"\"'); case \"$f\" in */visual-diff-loop/src/*) proj=\"${f%/visual-diff-loop/src/*}/visual-diff-loop\"; (cd \"$proj\" && npm run render --silent && npm run diff --silent) >/dev/null 2>&1 || true ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
