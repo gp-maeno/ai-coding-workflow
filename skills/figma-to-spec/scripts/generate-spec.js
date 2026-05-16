@@ -30,6 +30,10 @@ const getArg = (name, def = null) => {
 const NODE_ID = getArg('--node');
 const OUT_PATH = getArg('--out', 'docs/spec.md');
 const PROJECT_NAME = getArg('--project-name', '[TODO] 案件名');
+// --with-variables: Figma Variables API (/v1/files/:key/variables/local) を使う。
+// このAPIは Enterprise プラン限定。Professional 以下では 403 になるため default OFF。
+// 未指定時は Color/Text Styles から代替抽出する。
+const WITH_VARIABLES = args.includes('--with-variables');
 
 const FIGMA_TOKEN = process.env.FIGMA_TOKEN;
 const FIGMA_FILE_KEY = process.env.FIGMA_FILE_KEY;
@@ -73,12 +77,16 @@ function rgbaToHex({ r, g, b, a = 1 }) {
 // 抽出関数
 // ============================================================
 
-/** Figma Variables を取得し、Markdown テーブルにする */
-async function extractDesignTokens() {
+/** Figma Variables を取得し、Markdown テーブルにする（Enterprise プラン限定） */
+async function extractDesignTokensFromVariables() {
   try {
     const res = await figmaApi(`/v1/files/${FIGMA_FILE_KEY}/variables/local`);
-    if (res.error || !res.meta) {
-      return '[INFO] Variables APIが利用できないか、Variableが未設定です。手動で記入してください。\n\n| トークン名 | 値 | 用途 |\n|---|---|---|\n| [TODO] | [TODO] | [TODO] |';
+    // Figma API は権限不足時 { status: 403, err: "...", message: "..." } を返す
+    if (res.status === 403 || res.err || res.error) {
+      return null; // 上位でフォールバックさせる
+    }
+    if (!res.meta) {
+      return '[INFO] Variables が未設定です。手動で記入してください。\n\n| トークン名 | 値 | 用途 |\n|---|---|---|\n| [TODO] | [TODO] | [TODO] |';
     }
     const { variables = {}, variableCollections = {} } = res.meta;
     const rows = [];
@@ -101,8 +109,63 @@ async function extractDesignTokens() {
     }
     return rows.join('\n');
   } catch (err) {
-    return `[INFO] Variables 取得失敗: ${err.message}`;
+    return null;
   }
+}
+
+/**
+ * Figma Color/Text Styles からデザイントークン候補を抽出する（Professional プラン向け代替）。
+ * file response の `styles` メタ情報と、それを参照しているノードの実値をマージして表を作る。
+ */
+function extractDesignTokensFromStyles(fileData) {
+  const stylesMeta = fileData.styles || {};
+  if (Object.keys(stylesMeta).length === 0) {
+    return '[INFO] Color Styles / Text Styles が見つかりませんでした。デザイナーに Styles 定義を依頼するか、`--with-variables` フラグで Variables API を試してください（Enterprise プランのみ）。\n\n| トークン名 | 値 | 用途 |\n|---|---|---|\n| [TODO] | [TODO] | [TODO] |';
+  }
+
+  // Style ID → 実値の解決用に、Styles を参照しているノードを収集する。
+  const styleIdToValue = {};
+  walk(fileData.document, (node) => {
+    const refs = node.styles || {};
+    // fill style
+    if (refs.fill && !styleIdToValue[refs.fill]) {
+      const solid = (node.fills || []).find(f => f.type === 'SOLID');
+      if (solid && solid.color) styleIdToValue[refs.fill] = { kind: 'COLOR', value: rgbaToHex({ ...solid.color, a: solid.opacity ?? 1 }) };
+    }
+    // text style
+    if (refs.text && !styleIdToValue[refs.text] && node.style) {
+      styleIdToValue[refs.text] = {
+        kind: 'TEXT',
+        value: `${node.style.fontFamily || '?'} ${node.style.fontWeight || ''} / ${node.style.fontSize || '?'}px`.trim(),
+      };
+    }
+    // effect style
+    if (refs.effect && !styleIdToValue[refs.effect]) {
+      const eff = (node.effects || [])[0];
+      if (eff) styleIdToValue[refs.effect] = { kind: 'EFFECT', value: `${eff.type} radius=${eff.radius ?? '?'}` };
+    }
+  });
+
+  const rows = ['| トークン名 | 型 | 値 | 用途 |', '|---|---|---|---|'];
+  for (const [id, meta] of Object.entries(stylesMeta)) {
+    const resolved = styleIdToValue[id];
+    const tokenName = `--${meta.name.replace(/\//g, '-').replace(/\s+/g, '-').toLowerCase()}`;
+    const displayValue = resolved ? resolved.value : '[未参照ノード — 値不明]';
+    rows.push(`| \`${tokenName}\` | ${meta.styleType} | ${displayValue} | ${meta.description || '[TODO]'} |`);
+  }
+  rows.push('');
+  rows.push('> Note: Color/Text Styles から抽出（Professional プラン対応）。Variables を使っている場合は `--with-variables` フラグを付けて再実行してください（Enterprise プランのみ）。');
+  return rows.join('\n');
+}
+
+/** デザイントークン抽出のエントリポイント。フラグで Variables/Styles を切り替える */
+async function extractDesignTokens(fileData) {
+  if (WITH_VARIABLES) {
+    const fromVariables = await extractDesignTokensFromVariables();
+    if (fromVariables !== null) return fromVariables;
+    console.error('[WARN] Variables API が利用できませんでした（Enterprise 限定）。Styles から代替抽出します。');
+  }
+  return extractDesignTokensFromStyles(fileData);
 }
 
 /** ページとセクション構成を抽出 */
@@ -275,7 +338,7 @@ function extractHardToReproduce(document) {
   }
 
   console.error('Extracting design tokens...');
-  const tokens = await extractDesignTokens();
+  const tokens = await extractDesignTokens(fileData);
 
   console.error('Extracting pages and sections...');
   const pages = extractPagesAndSections(fileData.document);

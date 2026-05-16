@@ -69,6 +69,19 @@ cp .env.example .env  # Figma API トークンを設定（存在する場合）
 
 詳細は [`visual-diff-loop/README.md`](./visual-diff-loop/README.md) と [`visual-diff-loop/CLAUDE.md`](./visual-diff-loop/CLAUDE.md) を参照。
 
+#### Figma API トークンに必要なスコープ
+
+本ワークフローは **Figma Professional プラン前提**で設計されています。発行する Personal Access Token には次のスコープを付与してください:
+
+| スコープ | 用途 | 必須/任意 |
+|---|---|---|
+| `file_content:read` | ノードツリー取得・画像書き出し | **必須** |
+| `file_metadata:read` | ファイル全体メタ情報取得 | **必須** |
+| `file_variables:read` | Variables API | Enterprise プランのみ。`generate-spec.js --with-variables` を使う場合のみ |
+| `current_user:read` | トークン動作確認用 | 任意 |
+
+Professional プランでは `file_variables:read` は付与不可（UI に出ない）ですが、デザイントークンは **Color Styles / Text Styles から抽出**するため問題ありません。
+
 ### 3. Skill を Claude Code に認識させる
 
 リポジトリ直下を Claude Code のプロジェクトとして開けば、`skills/*/SKILL.md` の各Skillと `CLAUDE.md` が自動で読み込まれる。

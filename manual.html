@@ -547,7 +547,14 @@
 
       <div class="step">
         <h4>Step 3: Figma個人アクセストークンを取得</h4>
-        <p>Figma にログイン → 右上のアイコン → Settings → Personal access tokens → "Generate new token" でトークンを作成。スコープは "File content" 読み取りが最低限必要です。</p>
+        <p>Figma にログイン → 右上のアイコン → Settings → Personal access tokens → "Generate new token" でトークンを作成。<strong>必要スコープ</strong>:</p>
+        <ul>
+          <li><code class="inline">file_content:read</code> — ノードツリー・画像書き出し（必須）</li>
+          <li><code class="inline">file_metadata:read</code> — ファイル全体取得（必須）</li>
+          <li><code class="inline">file_variables:read</code> — Variables API（<strong>Enterprise プランのみ</strong>。Professional 以下では未使用）</li>
+          <li><code class="inline">current_user:read</code> — トークン動作確認用（任意）</li>
+        </ul>
+        <p class="callout">本ワークフローは Professional プラン前提で設計されています。Variables API は使わず、Color/Text Styles からデザイントークンを抽出します。Enterprise プランで Variables を活用したい場合は <code class="inline">generate-spec.js --with-variables</code> を指定してください。</p>
         <p>取得したトークンを安全な場所に保管します。<code class="inline">~/.zshrc</code> や <code class="inline">~/.bashrc</code> に追記する例：</p>
         <pre class="code"><button class="copy-btn">copy</button><span class="comment"># ~/.zshrc などに追記</span>
 <span class="keyword">export</span> FIGMA_TOKEN=<span class="string">"figd_xxxxxxxxxxxxxxxxxxxxx"</span></pre>
@@ -1149,7 +1156,7 @@
       <div class="acc-body">
         <p>主な原因は3つ：</p>
         <ul>
-          <li>トークンの権限不足 — Figma設定でトークンの「File content」スコープを確認</li>
+          <li>トークンの権限不足 — Figma設定でトークンに <code class="inline">file_content:read</code> と <code class="inline">file_metadata:read</code> が付いているか確認。Variables API（<code class="inline">file_variables:read</code>）は Enterprise プラン限定なので、Professional 以下では <code class="inline">--with-variables</code> を付けずに実行する</li>
           <li>ファイルキーが間違っている — URL の <code class="inline">/file/【ここ】/</code> 部分を再確認</li>
           <li>ファイルへのアクセス権がない — Figmaファイルが共有されているか確認。デザイナーに依頼</li>
         </ul>

@@ -1,6 +1,6 @@
 ---
 name: figma-to-spec
-description: Figmaデザインから中間仕様（spec.md）を自動生成するSkill。Phase 1の主要コンポーネント。Figma Variables、Frame構造、@cms-/@img- マーカー、レイヤーDescriptionから情報を抽出し、Claude Codeがコーディングに使える構造化された仕様書を出力する。
+description: Figmaデザインから中間仕様（spec.md）を自動生成するSkill。Phase 1の主要コンポーネント。Figma Color/Text Styles（Professional プラン対応）、Frame構造、@cms-/@img- マーカー、レイヤーDescriptionから情報を抽出し、Claude Codeがコーディングに使える構造化された仕様書を出力する。Enterprise プランの場合は `--with-variables` で Variables API も併用可能。
 ---
 
 # 中間仕様生成 Skill（figma-to-spec）
@@ -22,6 +22,7 @@ Figma デザインを Claude Code に渡す前に、**コーディングに必�
 - `--node <nodeId>` （オプション、特定ページのみ処理する場合）
 - `--out <path>`（オプション、デフォルト `docs/spec.md`）
 - `--project-name <name>`（オプション、案件名）
+- `--with-variables`（オプション、**Enterprise プランのみ**）：Figma Variables API を叩いてデザイントークンを抽出。未指定時は Color/Text Styles から抽出する
 
 ## 実行手順
 
@@ -40,7 +41,7 @@ Figma デザインを Claude Code に渡す前に、**コーディングに必�
 
 ## このSkillが自動で埋める情報
 
-- **デザインシステム**：Figma Variables（カラー、フォントサイズ、spacing等）→ CSS Custom Properties 候補として書き出し
+- **デザインシステム**：Figma Color Styles / Text Styles → CSS Custom Properties 候補として書き出し（`--with-variables` 指定時のみ Enterprise の Variables API も併用）
 - **ページ構成**：Frame ツリーから抽出（pc/sp ペアを認識）
 - **セクション一覧**：各ページ直下の Frame をセクションとして列挙、ノードIDを併記
 - **CMS可変領域**：`@cms-` プレフィックスのレイヤーを検出し、フィールド名・想定入力タイプを推定
